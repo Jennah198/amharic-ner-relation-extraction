@@ -16,3 +16,4 @@ runs/
 wandb/
 flagged/
 .gradio/
+logs/

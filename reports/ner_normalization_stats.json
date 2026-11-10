@@ -1,0 +1,17 @@
+{
+  "train": {
+    "tokens": 25819,
+    "tokens_changed_by_normalization": 2040,
+    "pct_changed": 7.9
+  },
+  "validation": {
+    "tokens": 3749,
+    "tokens_changed_by_normalization": 297,
+    "pct_changed": 7.92
+  },
+  "test": {
+    "tokens": 7449,
+    "tokens_changed_by_normalization": 512,
+    "pct_changed": 6.87
+  }
+}

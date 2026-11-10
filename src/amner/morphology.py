@@ -66,12 +66,15 @@ class MorphAnalyzer:
       that happen to end in ን/ና/ም (ሱዳን -> ሱዳ, ኮሚሽን -> ኮሚሽ).
     * With a frequency lexicon (built from our news corpus) an analysis is only
       accepted if its stem is a known word that is at least as frequent as the
-      full surface form; among valid analyses the most frequent stem wins.
+      full surface form scaled by ``rel_freq`` (genitive forms such as የኢትዮጵያ are
+      often *more* frequent in news than the bare stem, so equality is too strict);
+      among valid analyses the most frequent stem wins.
       ኢትዮጵያንም -> ኢትዮጵያ (+ንም), but ሱዳን stays ሱዳን because "ሱዳ" is not a word.
     """
 
     freq: Counter = field(default_factory=Counter)
     min_freq: int = 3
+    rel_freq: float = 0.1
 
     @property
     def use_lexicon(self) -> bool:
@@ -120,7 +123,7 @@ class MorphAnalyzer:
         best, best_key = None, None
         for p, stem, s in self._candidates(word):
             fs = self.freq.get(stem, 0)
-            if fs < self.min_freq or fs < fw:
+            if fs < self.min_freq or fs < self.rel_freq * fw:
                 continue
             key = (fs, len(p) + len(s))
             if best_key is None or key > best_key:

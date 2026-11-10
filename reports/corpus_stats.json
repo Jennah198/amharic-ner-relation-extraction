@@ -1,0 +1,42 @@
+{
+  "docs": 9892,
+  "raw_chars": 20856802,
+  "latin_words": 10915,
+  "sentences_raw": 319937,
+  "dropped_filter": 77326,
+  "dropped_duplicate": 7054,
+  "sentences_kept": 235557,
+  "train_sentences": 230846,
+  "valid_sentences": 4711,
+  "tokens": 4037042,
+  "types": 311028,
+  "ethiopic_chars": 15540449,
+  "kept_per_source": {
+    "bbc_amharic": 16309,
+    "masakhane/masakhanews": 35461,
+    "rasyosef/amharic-news-category-classification": 183787
+  },
+  "homophone_chars_normalized_top": {
+    "ዓ": 50144,
+    "ሥ": 39079,
+    "ዕ": 25946,
+    "ሃ": 25632,
+    "ሕ": 18721,
+    "ሠ": 13720,
+    "ኃ": 12545,
+    "ፀ": 10931,
+    "ሐ": 8561,
+    "ፃ": 8288,
+    "ፅ": 7485,
+    "ሔ": 5581,
+    "ኅ": 4360,
+    "ሦ": 3737,
+    "ፁ": 2552,
+    "ሣ": 2157,
+    "ዐ": 1720,
+    "ሓ": 1415,
+    "ዑ": 957,
+    "ፆ": 703
+  },
+  "code_switch_mode": "keep"
+}
