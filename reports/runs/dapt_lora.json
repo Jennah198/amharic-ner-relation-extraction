@@ -1,0 +1,17 @@
+{
+  "name": "dapt_lora",
+  "base": "artifacts/mlm_dapt",
+  "mode": "lora",
+  "morph_augment": false,
+  "train_sentences": 1750,
+  "params_total": 41900553,
+  "params_trainable": 1184265,
+  "trainable_pct": 2.83,
+  "lr": 0.0005,
+  "epochs_run": 8.0,
+  "train_time_s": 438.2,
+  "best_val_f1": 0.7868,
+  "test_precision": 0.7076,
+  "test_recall": 0.7545,
+  "test_f1": 0.7303
+}

@@ -1,0 +1,17 @@
+{
+  "name": "dapt_full",
+  "base": "artifacts/mlm_dapt",
+  "mode": "full",
+  "morph_augment": false,
+  "train_sentences": 1750,
+  "params_total": 41900553,
+  "params_trainable": 41900553,
+  "trainable_pct": 100.0,
+  "lr": 5e-05,
+  "epochs_run": 7.0,
+  "train_time_s": 548.8,
+  "best_val_f1": 0.7892,
+  "test_precision": 0.7326,
+  "test_recall": 0.7903,
+  "test_f1": 0.7603
+}

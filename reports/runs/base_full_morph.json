@@ -1,0 +1,17 @@
+{
+  "name": "base_full_morph",
+  "base": "rasyosef/roberta-medium-amharic",
+  "mode": "full",
+  "morph_augment": true,
+  "train_sentences": 2514,
+  "params_total": 41871369,
+  "params_trainable": 41871369,
+  "trainable_pct": 100.0,
+  "lr": 5e-05,
+  "epochs_run": 8.0,
+  "train_time_s": 945.3,
+  "best_val_f1": 0.7728,
+  "test_precision": 0.7006,
+  "test_recall": 0.776,
+  "test_f1": 0.7364
+}

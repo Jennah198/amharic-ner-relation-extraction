@@ -1,0 +1,126 @@
+{
+  "name": "dapt_full_morph",
+  "model": "artifacts/ner/dapt_full_morph",
+  "split": "test",
+  "sentences": 500,
+  "f1": 0.7401,
+  "f1_strict": 0.7502,
+  "f1_raw_input": 0.7367,
+  "per_type": {
+    "DATE": {
+      "precision": 0.75,
+      "recall": 0.7075,
+      "f1-score": 0.7282,
+      "support": 106.0
+    },
+    "LOC": {
+      "precision": 0.7773,
+      "recall": 0.7533,
+      "f1-score": 0.7651,
+      "support": 227.0
+    },
+    "ORG": {
+      "precision": 0.4643,
+      "recall": 0.6265,
+      "f1-score": 0.5333,
+      "support": 83.0
+    },
+    "PER": {
+      "precision": 0.8414,
+      "recall": 0.8592,
+      "f1-score": 0.8502,
+      "support": 142.0
+    },
+    "micro avg": {
+      "precision": 0.7279,
+      "recall": 0.7527,
+      "f1-score": 0.7401,
+      "support": 558.0
+    },
+    "macro avg": {
+      "precision": 0.7082,
+      "recall": 0.7366,
+      "f1-score": 0.7192,
+      "support": 558.0
+    },
+    "weighted avg": {
+      "precision": 0.7419,
+      "recall": 0.7527,
+      "f1-score": 0.7453,
+      "support": 558.0
+    }
+  },
+  "buckets": {
+    "affix:bare": {
+      "n": 315,
+      "recall": 0.7651
+    },
+    "affix:prefix": {
+      "n": 210,
+      "recall": 0.7333
+    },
+    "affix:prefix+suffix": {
+      "n": 8,
+      "recall": 0.75
+    },
+    "affix:suffix": {
+      "n": 25,
+      "recall": 0.76
+    },
+    "length:1": {
+      "n": 259,
+      "recall": 0.7336
+    },
+    "length:2": {
+      "n": 194,
+      "recall": 0.7887
+    },
+    "length:3+": {
+      "n": 105,
+      "recall": 0.7333
+    },
+    "novelty:seen_surface": {
+      "n": 160,
+      "recall": 0.8688
+    },
+    "novelty:unseen": {
+      "n": 363,
+      "recall": 0.708
+    },
+    "novelty:unseen_surface_seen_stem": {
+      "n": 35,
+      "recall": 0.6857
+    },
+    "type:DATE": {
+      "n": 106,
+      "recall": 0.7075
+    },
+    "type:LOC": {
+      "n": 227,
+      "recall": 0.7533
+    },
+    "type:ORG": {
+      "n": 83,
+      "recall": 0.6265
+    },
+    "type:PER": {
+      "n": 142,
+      "recall": 0.8592
+    }
+  },
+  "errors": {
+    "missed": 53,
+    "boundary": 46,
+    "spurious": 62,
+    "boundary+type": 19,
+    "type_confusion": 20
+  },
+  "type_confusions": {
+    "LOC->ORG": 11,
+    "LOC->PER": 5,
+    "ORG->PER": 1,
+    "ORG->LOC": 1,
+    "PER->ORG": 1,
+    "PER->LOC": 1
+  }
+}

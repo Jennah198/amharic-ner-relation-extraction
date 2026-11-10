@@ -1,0 +1,67 @@
+{
+  "base_full": {
+    "f1": 0.7599,
+    "f1_ci95": [
+      0.7238,
+      0.7938
+    ],
+    "delta_vs_base": 0.0,
+    "delta_ci95": [
+      0.0,
+      0.0
+    ],
+    "p_better_than_base": 0.0
+  },
+  "base_full_morph": {
+    "f1": 0.7364,
+    "f1_ci95": [
+      0.6984,
+      0.772
+    ],
+    "delta_vs_base": -0.0235,
+    "delta_ci95": [
+      -0.048,
+      0.0001
+    ],
+    "p_better_than_base": 0.026
+  },
+  "dapt_full": {
+    "f1": 0.7603,
+    "f1_ci95": [
+      0.7212,
+      0.7954
+    ],
+    "delta_vs_base": 0.0005,
+    "delta_ci95": [
+      -0.0211,
+      0.02
+    ],
+    "p_better_than_base": 0.526
+  },
+  "dapt_lora": {
+    "f1": 0.7303,
+    "f1_ci95": [
+      0.6921,
+      0.7651
+    ],
+    "delta_vs_base": -0.0296,
+    "delta_ci95": [
+      -0.0561,
+      -0.0049
+    ],
+    "p_better_than_base": 0.011
+  },
+  "dapt_full_morph": {
+    "f1": 0.7401,
+    "f1_ci95": [
+      0.7029,
+      0.7724
+    ],
+    "delta_vs_base": -0.0198,
+    "delta_ci95": [
+      -0.0437,
+      0.0028
+    ],
+    "p_better_than_base": 0.043
+  }
+}

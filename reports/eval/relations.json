@@ -1,0 +1,251 @@
+{
+  "sentences": 25,
+  "gold_relations": 55,
+  "gold_entities": {
+    "AGREEMENT_WITH": {
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1": 1.0,
+      "tp": 3,
+      "fp": 0,
+      "fn": 0
+    },
+    "CONFLICT_WITH": {
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1": 1.0,
+      "tp": 3,
+      "fp": 0,
+      "fn": 0
+    },
+    "EVENT_DATE": {
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1": 1.0,
+      "tp": 6,
+      "fp": 0,
+      "fn": 0
+    },
+    "HOLDS_TITLE": {
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1": 1.0,
+      "tp": 17,
+      "fp": 0,
+      "fn": 0
+    },
+    "LEADER_OF": {
+      "precision": 0.9333,
+      "recall": 0.9333,
+      "f1": 0.9333,
+      "tp": 14,
+      "fp": 1,
+      "fn": 1
+    },
+    "LOCATED_IN": {
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1": 1.0,
+      "tp": 2,
+      "fp": 0,
+      "fn": 0
+    },
+    "MEMBER_OF": {
+      "precision": 0.0,
+      "recall": 0.0,
+      "f1": 0.0,
+      "tp": 0,
+      "fp": 0,
+      "fn": 1
+    },
+    "MET_WITH": {
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1": 1.0,
+      "tp": 7,
+      "fp": 0,
+      "fn": 0
+    },
+    "SPOKESPERSON_OF": {
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1": 1.0,
+      "tp": 1,
+      "fp": 0,
+      "fn": 0
+    },
+    "micro": {
+      "precision": 0.9815,
+      "recall": 0.9636,
+      "f1": 0.9725,
+      "tp": 53,
+      "fp": 1,
+      "fn": 2
+    }
+  },
+  "gold_entities_greedy_analyzer": {
+    "AGREEMENT_WITH": {
+      "precision": 0.6667,
+      "recall": 0.6667,
+      "f1": 0.6667,
+      "tp": 2,
+      "fp": 1,
+      "fn": 1
+    },
+    "CONFLICT_WITH": {
+      "precision": 0.6667,
+      "recall": 0.6667,
+      "f1": 0.6667,
+      "tp": 2,
+      "fp": 1,
+      "fn": 1
+    },
+    "EVENT_DATE": {
+      "precision": 0.8333,
+      "recall": 0.8333,
+      "f1": 0.8333,
+      "tp": 5,
+      "fp": 1,
+      "fn": 1
+    },
+    "HOLDS_TITLE": {
+      "precision": 0.9412,
+      "recall": 0.9412,
+      "f1": 0.9412,
+      "tp": 16,
+      "fp": 1,
+      "fn": 1
+    },
+    "LEADER_OF": {
+      "precision": 0.9333,
+      "recall": 0.9333,
+      "f1": 0.9333,
+      "tp": 14,
+      "fp": 1,
+      "fn": 1
+    },
+    "LOCATED_IN": {
+      "precision": 0.5,
+      "recall": 0.5,
+      "f1": 0.5,
+      "tp": 1,
+      "fp": 1,
+      "fn": 1
+    },
+    "MEMBER_OF": {
+      "precision": 0.0,
+      "recall": 0.0,
+      "f1": 0.0,
+      "tp": 0,
+      "fp": 0,
+      "fn": 1
+    },
+    "MET_WITH": {
+      "precision": 0.7143,
+      "recall": 0.7143,
+      "f1": 0.7143,
+      "tp": 5,
+      "fp": 2,
+      "fn": 2
+    },
+    "SPOKESPERSON_OF": {
+      "precision": 0.0,
+      "recall": 0.0,
+      "f1": 0.0,
+      "tp": 0,
+      "fp": 1,
+      "fn": 1
+    },
+    "micro": {
+      "precision": 0.8333,
+      "recall": 0.8182,
+      "f1": 0.8257,
+      "tp": 45,
+      "fp": 9,
+      "fn": 10
+    }
+  },
+  "end_to_end": {
+    "AGREEMENT_WITH": {
+      "precision": 1.0,
+      "recall": 0.6667,
+      "f1": 0.8,
+      "tp": 2,
+      "fp": 0,
+      "fn": 1
+    },
+    "CONFLICT_WITH": {
+      "precision": 1.0,
+      "recall": 0.3333,
+      "f1": 0.5,
+      "tp": 1,
+      "fp": 0,
+      "fn": 2
+    },
+    "EVENT_DATE": {
+      "precision": 1.0,
+      "recall": 0.8333,
+      "f1": 0.9091,
+      "tp": 5,
+      "fp": 0,
+      "fn": 1
+    },
+    "HOLDS_TITLE": {
+      "precision": 0.8889,
+      "recall": 0.9412,
+      "f1": 0.9143,
+      "tp": 16,
+      "fp": 2,
+      "fn": 1
+    },
+    "LEADER_OF": {
+      "precision": 0.6923,
+      "recall": 0.6,
+      "f1": 0.6429,
+      "tp": 9,
+      "fp": 4,
+      "fn": 6
+    },
+    "LOCATED_IN": {
+      "precision": 0.5,
+      "recall": 0.5,
+      "f1": 0.5,
+      "tp": 1,
+      "fp": 1,
+      "fn": 1
+    },
+    "MEMBER_OF": {
+      "precision": 0.0,
+      "recall": 0.0,
+      "f1": 0.0,
+      "tp": 0,
+      "fp": 0,
+      "fn": 1
+    },
+    "MET_WITH": {
+      "precision": 0.8,
+      "recall": 0.5714,
+      "f1": 0.6667,
+      "tp": 4,
+      "fp": 1,
+      "fn": 3
+    },
+    "SPOKESPERSON_OF": {
+      "precision": 0.0,
+      "recall": 0.0,
+      "f1": 0.0,
+      "tp": 0,
+      "fp": 1,
+      "fn": 1
+    },
+    "micro": {
+      "precision": 0.8085,
+      "recall": 0.6909,
+      "f1": 0.7451,
+      "tp": 38,
+      "fp": 9,
+      "fn": 17
+    }
+  },
+  "end_to_end_model": "artifacts/ner/best"
+}
