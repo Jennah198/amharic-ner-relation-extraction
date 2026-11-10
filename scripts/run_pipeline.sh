@@ -31,6 +31,7 @@ for m in base_full base_full_morph dapt_full dapt_lora dapt_full_morph; do
   python -m amner.evaluate --model artifacts/ner/$m --name $m
 done
 python -m amner.select_best
+python -m amner.significance
 python -m amner.evaluate_re --model artifacts/ner/best
 python -m amner.optimize --model artifacts/ner/best
 python -m amner.summarize
