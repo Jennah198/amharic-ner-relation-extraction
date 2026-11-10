@@ -12,8 +12,9 @@ data/interim/
 data/processed/*
 !data/processed/corpus_sample.txt
 artifacts/
-runs/
+/runs/
 wandb/
 flagged/
 .gradio/
 logs/
+*.egg-info/

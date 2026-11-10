@@ -1,0 +1,11 @@
+{
+  "base_model": "rasyosef/roberta-medium-amharic",
+  "extended_tokenizer": "artifacts/tokenizers/backbone_extended",
+  "vocab_size": 32057,
+  "train_lines": 230846,
+  "steps": 800,
+  "train_runtime_s": 3039.5,
+  "train_loss": 2.4658,
+  "perplexity_before": 12.4,
+  "perplexity_after": 9.85
+}
