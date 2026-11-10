@@ -72,6 +72,14 @@ def main():
                         ignore=shutil.ignore_patterns("__pycache__", "collect"))
         app = (ROOT / "app" / "gradio_app.py").read_text()
         header = ("import os\nos.environ.setdefault('AMNER_MODEL_DIR', '%s')\n" % model_id)
+        # tokenizer files for the "Tokenizer" tab (small; the backbone/XLM-R ones come from the Hub)
+        tok_src = ROOT / "artifacts" / "tokenizers"
+        if tok_src.exists():
+            (tmp / "tokenizers").mkdir()
+            for f in ("amharic_bpe.json", "amharic_wordpiece.json"):
+                shutil.copy(tok_src / f, tmp / "tokenizers" / f)
+            shutil.copytree(tok_src / "backbone_extended", tmp / "tokenizers" / "backbone_extended")
+        header += "os.environ.setdefault('AMNER_TOKENIZER_DIR', 'tokenizers')\n"
         (tmp / "app.py").write_text(header + app.replace('demo.launch(server_name=os.environ.get("GRADIO_SERVER_NAME", "127.0.0.1"))', "demo.launch()"))
         (tmp / "requirements.txt").write_text(SPACE_REQS)
         (tmp / "README.md").write_text(SPACE_README.format(gradio_version=gradio.__version__, github=a.github))
