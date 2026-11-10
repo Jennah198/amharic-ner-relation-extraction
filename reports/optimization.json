@@ -1,0 +1,20 @@
+{
+  "model": "artifacts/ner/best",
+  "threads": 4,
+  "test_sentences": 500,
+  "fp32": {
+    "size_mb": 167.7,
+    "latency_ms_per_sentence_bs1": 21.39,
+    "throughput_sent_per_s_bs32": 90.1,
+    "test_f1": 0.7603
+  },
+  "int8_dynamic": {
+    "size_mb": 92.2,
+    "latency_ms_per_sentence_bs1": 9.09,
+    "throughput_sent_per_s_bs32": 203.9,
+    "test_f1": 0.7517
+  },
+  "speedup_bs1": 2.35,
+  "size_reduction": 1.82,
+  "f1_delta": -0.0086
+}
