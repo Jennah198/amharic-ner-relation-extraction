@@ -1,0 +1,70 @@
+{
+  "custom_bpe": {
+    "fertility": 1.4,
+    "single_piece_pct": 73.34,
+    "unk_pct": 0.0,
+    "clitic_boundary_recall_pct": 10.88,
+    "clitic_boundaries_checked": 294,
+    "vocab_size": 16000
+  },
+  "custom_wordpiece": {
+    "fertility": 1.394,
+    "single_piece_pct": 73.32,
+    "unk_pct": 0.0,
+    "clitic_boundary_recall_pct": 8.16,
+    "clitic_boundaries_checked": 294,
+    "vocab_size": 16000
+  },
+  "backbone:rasyosef/roberta-medium-amharic": {
+    "fertility": 1.336,
+    "single_piece_pct": 77.47,
+    "unk_pct": 0.0,
+    "clitic_boundary_recall_pct": 34.69,
+    "clitic_boundaries_checked": 294,
+    "vocab_size": 32000
+  },
+  "compare:xlm-roberta-base": {
+    "fertility": 2.066,
+    "single_piece_pct": 45.64,
+    "unk_pct": 0.0,
+    "clitic_boundary_recall_pct": 53.4,
+    "clitic_boundaries_checked": 294,
+    "vocab_size": 250002
+  },
+  "backbone_extended": {
+    "fertility": 1.333,
+    "single_piece_pct": 77.59,
+    "unk_pct": 0.0,
+    "clitic_boundary_recall_pct": 34.69,
+    "clitic_boundaries_checked": 294,
+    "vocab_size": 32057,
+    "added_tokens": 57,
+    "example_added": [
+      "ቻምፒዮና",
+      "ክትባቱን",
+      "ሀይማኖታዊ",
+      "በውሀ",
+      "የነሀስ",
+      "ክትባቱ",
+      "ትእግስት",
+      "ከሰአት",
+      "በበአሉ",
+      "ቻምፒዮን",
+      "በቶኪዮ",
+      "መጸዳጃ",
+      "ሊቀመንበሩ",
+      "መዋእለ",
+      "ስታዲየሞች",
+      "የማእድን",
+      "ወርሀዊ",
+      "የህንጻ",
+      "ሀያላን",
+      "ስእል",
+      "የበአሉ",
+      "የእውቅና",
+      "አፈጻጸሙ",
+      "ልኡል",
+      "የጸሀይ"
+    ]
+  }
+}
