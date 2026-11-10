@@ -29,3 +29,4 @@ pyarrow
 matplotlib
 scikit-learn
 pytest
+tensorboard

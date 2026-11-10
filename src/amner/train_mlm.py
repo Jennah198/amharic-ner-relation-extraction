@@ -25,6 +25,7 @@ from pathlib import Path
 
 import torch
 from datasets import Dataset
+from .tb_export import tb_report_to
 from transformers import (AutoModelForMaskedLM, AutoTokenizer, DataCollatorForLanguageModeling,
                           Trainer, TrainingArguments, set_seed)
 
@@ -99,7 +100,7 @@ def main():
     args = TrainingArguments(
         output_dir=a.out + "_ckpt", num_train_epochs=a.epochs, max_steps=a.max_steps,
         per_device_train_batch_size=a.batch_size, learning_rate=a.lr, warmup_ratio=0.06,
-        weight_decay=0.01, logging_steps=50, save_strategy="no", report_to=[],
+        weight_decay=0.01, logging_steps=50, save_strategy="no", report_to=tb_report_to(), logging_dir=f"runs/mlm_{a.name}",
         seed=a.seed, dataloader_num_workers=0)
     trainer = Trainer(model=model, args=args, train_dataset=train, data_collator=collator)
     result = trainer.train()

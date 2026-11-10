@@ -28,6 +28,7 @@ from seqeval.metrics import classification_report, f1_score, precision_score, re
 from transformers import (AutoModelForTokenClassification, AutoTokenizer, DataCollatorForTokenClassification,
                           EarlyStoppingCallback, Trainer, TrainingArguments, set_seed)
 
+from .tb_export import tb_report_to
 from .data import ID2LABEL, LABEL2ID, LABELS, load_ner, tokenize_and_align
 
 
@@ -89,7 +90,7 @@ def main():
         per_device_train_batch_size=a.batch_size, per_device_eval_batch_size=32,
         warmup_ratio=0.1, weight_decay=0.01, eval_strategy="epoch", save_strategy="epoch",
         save_total_limit=1, load_best_model_at_end=True, metric_for_best_model="f1",
-        logging_steps=25, report_to=[], seed=a.seed, dataloader_num_workers=0)
+        logging_steps=25, report_to=tb_report_to(), logging_dir=f"runs/{a.name}", seed=a.seed, dataloader_num_workers=0)
     trainer = Trainer(model=model, args=args, train_dataset=tds["train"], eval_dataset=tds["validation"],
                       tokenizer=tok, data_collator=DataCollatorForTokenClassification(tok),
                       compute_metrics=compute_metrics_fn,
