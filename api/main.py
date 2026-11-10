@@ -9,7 +9,7 @@ from __future__ import annotations
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel, Field
 
-from amner import service
+from amner import explain, service
 
 app = FastAPI(title="Amharic NER & Relation Extraction API", version="1.0.0",
               description="Morphology-aware Amharic named entities (PER, ORG, LOC, DATE) "
@@ -46,3 +46,15 @@ def analyze(req: AnalyzeRequest):
 @app.post("/analyze/batch")
 def analyze_batch(req: BatchRequest):
     return [service.analyze(t) for t in req.texts]
+
+
+@app.post("/normalize")
+def normalize_text(req: AnalyzeRequest):
+    """Raw vs. normalized text with every re-spelled character and removed noise."""
+    return explain.normalization_diff(req.text)
+
+
+@app.post("/tokenize")
+def tokenize_text(req: AnalyzeRequest):
+    """Subword splits from every available tokenizer + clitic analysis per word."""
+    return explain.tokenizer_comparison(req.text)
