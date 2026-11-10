@@ -1,0 +1,18 @@
+# environments & secrets
+.venv/
+.env
+*.session
+__pycache__/
+*.pyc
+.pytest_cache/
+
+# large data & model artifacts (re-created by the pipeline, see PROCESS.md)
+data/raw/
+data/interim/
+data/processed/*
+!data/processed/corpus_sample.txt
+artifacts/
+runs/
+wandb/
+flagged/
+.gradio/

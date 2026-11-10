@@ -1,0 +1,31 @@
+# Core ML (CPU wheels are fine; on a GPU machine install the matching CUDA torch)
+torch==2.5.1
+transformers==4.46.3
+tokenizers>=0.20,<0.21
+datasets==3.1.0
+peft==0.13.2
+accelerate>=1.0
+seqeval>=1.2.2
+evaluate>=0.4
+
+# NLP pipeline
+spacy==3.8.2
+
+# Data collection
+requests
+beautifulsoup4
+lxml
+telethon
+python-dotenv
+
+# Serving
+fastapi
+uvicorn
+gradio
+
+# Analysis
+pandas
+pyarrow
+matplotlib
+scikit-learn
+pytest
