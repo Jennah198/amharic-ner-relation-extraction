@@ -16,6 +16,7 @@ scrape / download ─► normalize & clean ─► tokenizers ─► MLM adaptati
 
 📄 **[PROCESS.md](PROCESS.md)** documents every step in detail, with commands, design decisions and results.
 📊 **[reports/RESULTS.md](reports/RESULTS.md)** collects all metrics. Error analyses are in `reports/eval/`.
+📘 **[docs/Project_Report.pdf](docs/Project_Report.pdf)** is a complete step-by-step report with definitions of every concept.
 
 ## Results at a glance
 
@@ -44,12 +45,32 @@ pytest -q
 bash scripts/run_pipeline.sh          # full reproduction (~2–3 h on CPU)
 ```
 
-Serve the trained model:
+Serve the trained model (one command, for demos and presentations):
+
+```bash
+bash scripts/launch_demo.sh --tb        # API :8000, web UI :7860, TensorBoard :6006
+python scripts/rehearse_demo.py         # checks every endpoint and UI tab -> 8/8 PASS
+```
+
+or start the parts by hand:
 
 ```bash
 uvicorn api.main:app --port 8000                                   # REST API, docs at /docs
 AMNER_API_URL=http://127.0.0.1:8000 python app/gradio_app.py       # web UI at :7860
+tensorboard --logdir runs                                          # training curves at :6006
 ```
+
+The UI has five tabs: **Entities**, **Relations**, **Morphology**, and two "inside the
+pipeline" tabs: **Normalization** (raw vs cleaned text with every re-spelled character
+highlighted) and **Tokenizer** (splits from five tokenizers next to the clitic analysis).
+
+| Normalization tab | Tokenizer tab |
+|---|---|
+| ![](docs/ui_normalization.png) | ![](docs/ui_tokenizer.png) |
+
+Training curves of all runs are in TensorBoard (`runs/`, committed):
+
+![TensorBoard](docs/tensorboard.png)
 
 ```bash
 curl -s localhost:8000/analyze -H 'content-type: application/json' \

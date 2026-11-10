@@ -1,0 +1,973 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Morphology-Aware Amharic NER & Relation Extraction — Project Report</title>
+<style>
+  @page { size: A4; margin: 20mm 18mm 20mm 18mm;
+    @bottom-center { content: counter(page) " / " counter(pages); font: 8.5pt "Noto Sans", sans-serif; color: #777; }
+    @top-right { content: "Amharic NER & Relation Extraction"; font: 8pt "Noto Sans", sans-serif; color: #999; } }
+  @page :first { @bottom-center { content: none; } @top-right { content: none; } }
+  :root { --ink:#1d2433; --muted:#5b6475; --accent:#1f6f5c; --accent2:#b5651d; --line:#d9dde3; --soft:#f3f6f5; --code:#f5f5f2; }
+  html { font-size: 10.3pt; }
+  body { font-family: "Noto Serif", "Noto Serif Ethiopic", Georgia, serif; color: var(--ink); line-height: 1.5; margin: 0; }
+  .am, td.am { font-family: "Noto Sans Ethiopic", "Noto Serif Ethiopic", sans-serif; }
+  h1, h2, h3, h4 { break-after: avoid; page-break-after: avoid; font-family: "Noto Sans", "Noto Sans Ethiopic", sans-serif; color: var(--ink); line-height: 1.25; }
+  h1 { font-size: 20pt; margin: 0 0 6pt; color: var(--accent); page-break-before: always; padding-top: 2mm; border-bottom: 2px solid var(--accent); padding-bottom: 4pt; }
+  h2 { font-size: 13.5pt; margin: 16pt 0 6pt; color: var(--accent); }
+  h3 { font-size: 11.2pt; margin: 12pt 0 4pt; }
+  h4 { font-size: 10.3pt; margin: 9pt 0 3pt; color: var(--muted); }
+  p { margin: 0 0 7pt; text-align: justify; hyphens: auto; }
+  ul, ol { margin: 0 0 7pt 0; padding-left: 18pt; } li { margin-bottom: 2.5pt; }
+  code, pre, .mono { font-family: "Noto Sans Mono", "Noto Sans Ethiopic", monospace; font-size: 8.6pt; }
+  code { background: var(--code); padding: 0.5pt 3pt; border-radius: 2pt; }
+  pre { background: var(--code); border-left: 3px solid var(--accent); padding: 6pt 8pt; white-space: pre-wrap; word-break: break-word; margin: 4pt 0 9pt; page-break-inside: avoid; line-height: 1.4; }
+  table { border-collapse: collapse; width: 100%; margin: 4pt 0 10pt; font-size: 8.9pt; page-break-inside: avoid; }
+  table.long { page-break-inside: auto; } table.long tr { page-break-inside: avoid; }
+  th, td { border: 1px solid var(--line); padding: 3pt 5pt; vertical-align: top; text-align: left; }
+  th { background: var(--soft); font-family: "Noto Sans", sans-serif; font-weight: 600; }
+  td.n, th.n { text-align: right; font-variant-numeric: tabular-nums; }
+  caption { caption-side: top; text-align: left; font: 600 8.8pt "Noto Sans", sans-serif; color: var(--muted); padding-bottom: 3pt; }
+  .def { border: 1px solid #cfe3dc; background: #f2f9f6; border-radius: 4pt; padding: 6pt 9pt; margin: 6pt 0 9pt; page-break-inside: avoid; }
+  .def b.term { color: var(--accent); font-family: "Noto Sans", sans-serif; }
+  .note { border-left: 3px solid var(--accent2); background: #fbf5ee; padding: 5pt 9pt; margin: 6pt 0 9pt; page-break-inside: avoid; }
+  .key { border: 1px solid var(--line); background: #fafbfc; padding: 6pt 9pt; margin: 6pt 0 9pt; page-break-inside: avoid; }
+  figure { margin: 6pt 0 12pt; text-align: center; page-break-inside: avoid; }
+  figure img { max-width: 100%; border: 1px solid var(--line); }
+  figcaption { font: 8.6pt "Noto Sans", sans-serif; color: var(--muted); margin-top: 3pt; }
+  .cover { height: 250mm; display: flex; flex-direction: column; justify-content: center; }
+  .cover h1 { page-break-before: avoid; border: none; font-size: 26pt; color: var(--ink); }
+  .cover .sub { font: 13pt "Noto Sans", sans-serif; color: var(--accent); margin-bottom: 18pt; }
+  .cover .am-title { font: 600 17pt "Noto Sans Ethiopic", sans-serif; color: var(--accent2); margin-bottom: 26pt; }
+  .cover table { width: auto; font-size: 10pt; } .cover td { border: none; padding: 2pt 14pt 2pt 0; }
+  .toc { columns: 2; column-gap: 18pt; font-family: "Noto Sans", sans-serif; font-size: 9.6pt; }
+  .toc div { break-inside: avoid; margin-bottom: 2pt; } .toc .s { padding-left: 12pt; color: var(--muted); font-size: 9pt; }
+  .pill { display: inline-block; font: 600 7.8pt "Noto Sans", sans-serif; padding: 0.5pt 5pt; border-radius: 8pt; color: #fff; }
+  .PER { background:#c0612b; } .ORG { background:#1f6f5c; } .LOC { background:#2f5d8a; } .DATE { background:#8a6d1f; }
+  .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10pt; }
+  .small { font-size: 8.8pt; color: var(--muted); }
+  .avoid { page-break-inside: avoid; }
+  svg text { font-family: "Noto Sans", "Noto Sans Ethiopic", sans-serif; }
+</style>
+</head>
+<body>
+
+<!-- ============================ COVER ============================ -->
+<section class="cover">
+  <div class="small" style="font-family:'Noto Sans';letter-spacing:1pt;text-transform:uppercase;margin-bottom:8pt">End-to-end practical NLP pipeline · Project report</div>
+  <h1>Morphology-Aware Amharic Named Entity Recognition &amp; Relation Extraction</h1>
+  <div class="sub">Extracting persons, organizations, locations, dates and political relations from Amharic news</div>
+  <div class="am-title">የአማርኛ ስያሜ ለይቶ ማውጫ እና የግንኙነት ማውጫ ሥርዓት</div>
+  <table>
+    <tr><td><b>Language</b></td><td>Amharic (አማርኛ), Ge'ez / Fidel script</td></tr>
+    <tr><td><b>Required stack</b></td><td>MasakhaNER · Amharic RoBERTa (AmBERTa-class) · spaCy custom pipeline · BIO tagging</td></tr>
+    <tr><td><b>Stages</b></td><td>Collection · Normalization · Tokenization · Adaptation · Evaluation · Deployment</td></tr>
+    <tr><td><b>Main result</b></td><td>NER F1 0.760 on MasakhaNER Amharic test · Relation F1 0.745 end-to-end</td></tr>
+    <tr><td><b>Code</b></td><td>github.com/Jennah198/amharic-ner-relation-extraction</td></tr>
+    <tr><td><b>Date</b></td><td>November 2026</td></tr>
+  </table>
+</section>
+
+<!-- ============================ TOC ============================ -->
+<h1>Contents</h1>
+<div class="toc">
+  <div>1. Introduction and objective</div>
+  <div>2. Background: core concepts and definitions</div>
+  <div class="s">2.1 NLP, NER, BIO tagging · 2.2 Relation extraction · 2.3 The Amharic language and Fidel script · 2.4 Morphology · 2.5 Tokenization · 2.6 Transformers, BERT and RoBERTa · 2.7 Pre-training, fine-tuning, MLM, perplexity · 2.8 PEFT and LoRA · 2.9 Evaluation metrics · 2.10 Deployment technologies</div>
+  <div>3. System overview and environment</div>
+  <div>4. Stage 1 — Data collection</div>
+  <div>5. Stage 2 — Normalization and cleaning</div>
+  <div>6. The morphology module (clitic analysis)</div>
+  <div>7. Stage 3 — Tokenization</div>
+  <div>8. Stage 4 — Model adaptation and fine-tuning</div>
+  <div>9. Stage 5 — Evaluation and error analysis</div>
+  <div>10. Political relation extraction</div>
+  <div>11. Inference optimization</div>
+  <div>12. Stage 7 — System deployment</div>
+  <div>13. Problems encountered and how they were solved</div>
+  <div>14. Reproducibility and version history</div>
+  <div>15. Limitations and future work</div>
+  <div>16. Conclusion</div>
+  <div>17. Glossary</div>
+  <div>Appendix A — Hyper-parameters</div>
+  <div>Appendix B — File-by-file description</div>
+  <div>Appendix C — Relation gold-set examples</div>
+</div>
+
+<h2>Summary of results</h2>
+<table>
+  <tr><th>Stage</th><th>What was done</th><th>Key number</th></tr>
+  <tr><td>Data collection</td><td>MasakhaNER Amharic (gold NER) + 9,311 Hub news articles + 581 scraped BBC Amharic articles</td><td>9,892 raw documents</td></tr>
+  <tr><td>Normalization</td><td>Fidel homophone folding, noise removal, code-switching policy, filtering, de-duplication, leakage guard</td><td>235,557 sentences, 4.04 M tokens; 7.9% of NER tokens re-spelled</td></tr>
+  <tr><td>Tokenization</td><td>BPE + WordPiece trained; 5 tokenizers compared; backbone vocabulary extended</td><td>fertility 1.34 (Amharic) vs 2.07 (XLM-R)</td></tr>
+  <tr><td>Adaptation</td><td>Masked-LM domain adaptation; full fine-tuning, LoRA, morphology-aware augmentation (5 runs)</td><td>perplexity 12.40 → 9.85</td></tr>
+  <tr><td>Evaluation</td><td>seqeval F1, strict F1, per-type, bootstrap CIs, normalization ablation, morphological buckets</td><td><b>test F1 0.760</b> [0.721, 0.795]</td></tr>
+  <tr><td>Relations</td><td>9 political relation types extracted with Amharic-aware patterns</td><td>F1 0.973 (gold entities) / 0.745 (end-to-end)</td></tr>
+  <tr><td>Optimization</td><td>Dynamic INT8 quantization</td><td>2.35× faster, 1.82× smaller, −0.009 F1</td></tr>
+  <tr><td>Deployment</td><td>spaCy custom pipeline + FastAPI backend + Gradio UI with 5 tabs (incl. Normalization and Tokenizer explainability) + TensorBoard + Hugging Face Spaces script</td><td>9–35 ms per request on CPU; rehearsal 8/8 passed</td></tr>
+</table>
+
+<!-- ============================ 1 ============================ -->
+<h1>1. Introduction and objective</h1>
+<p>Every day Ethiopian newspapers, broadcasters and Telegram channels publish thousands of Amharic news stories about governments, political parties, regions and the people who lead them. Reading them automatically — finding <i>who</i> did <i>what</i>, <i>where</i> and <i>when</i>, and how political actors relate to each other — is the goal of <b>information extraction</b>. Most tools for this were built for English and work poorly on Amharic, because Amharic is written in its own script and has a very different word structure.</p>
+<p>The assignment asked for an <b>end-to-end practical NLP pipeline</b> for the topic <i>“Morphology-Aware Amharic Named Entity Recognition (NER) &amp; Relation Extraction”</i>: extract Organizations, Locations, Persons and Dates and political relations from Amharic news archives while addressing the language's complex <i>root-and-pattern</i> morphological variation. The required stack was MasakhaNER, EthioNLP/AmBERTa, a spaCy custom pipeline and BIO tagging. The implementation had to cover all of the following stages:</p>
+<ol>
+  <li><b>Data collection</b> — scraping news/Telegram/official repositories and sourcing benchmarks from Hugging Face.</li>
+  <li><b>Normalization &amp; cleaning</b> — Fidel homophone normalization (ሀ/ሐ/ኀ, ሠ/ሰ), noise stripping, code-switching, corpus formatting.</li>
+  <li><b>Tokenization</b> — training a BPE or WordPiece tokenizer or extending a pre-trained vocabulary.</li>
+  <li><b>Fine-tuning &amp; adaptation</b> — parameter-efficient fine-tuning or masked-language-model adaptation.</li>
+  <li><b>Evaluation</b> — quantitative metrics (F1, perplexity …) and qualitative error analysis on morphological failure cases.</li>
+  <li><b>System deployment</b> — a web interface (Gradio/Streamlit) with a FastAPI backend or Hugging Face Spaces.</li>
+</ol>
+<p>This report explains <b>every step that was carried out</b>, the reasoning behind each decision, the exact results, the problems we met and how we solved them. Section 2 defines all concepts used, so the report can be read without prior NLP knowledge. A glossary is given in Section 17.</p>
+
+<h2>1.1 What makes Amharic hard — in one example</h2>
+<p>Consider the English sentence <i>“Ethiopian Prime Minister Abiy Ahmed met Kenyan President William Ruto in Nairobi.”</i> In Amharic:</p>
+<pre class="am" style="font-size:10.5pt">የኢትዮጵያ ጠቅላይ ሚኒስትር ዐቢይ አሕመድ ከኬንያው ፕሬዚዳንት ዊልያም ሩቶ ጋር በናይሮቢ ተወያዩ።</pre>
+<ul>
+  <li><span class="am">የኢትዮጵያ</span> = <span class="am">የ</span> (“of”) + <span class="am">ኢትዮጵያ</span> (Ethiopia); <span class="am">ከኬንያው</span> = <span class="am">ከ</span> (“with/from”) + <span class="am">ኬንያ</span> (Kenya) + <span class="am">ው</span> (“the”); <span class="am">በናይሮቢ</span> = <span class="am">በ</span> (“in”) + Nairobi. Function words are <b>glued to the names</b>.</li>
+  <li><span class="am">ዐቢይ አሕመድ</span> is often also written <span class="am">አቢይ አህመድ</span> — the letters <span class="am">ዐ/አ</span> and <span class="am">ሕ/ህ</span> sound identical. The <b>same name has several spellings</b>.</li>
+  <li>The verb <span class="am">ተወያዩ</span> (“they discussed”) comes <b>last</b> (Subject–Object–Verb order), so the relation is only known at the end of the sentence.</li>
+</ul>
+<p>Our system must still output: <span class="pill LOC">LOC</span> ኢትዮጵያ, <span class="pill PER">PER</span> አቢይ አህመድ, <span class="pill LOC">LOC</span> ኬንያ, <span class="pill PER">PER</span> ዊልያም ሩቶ, <span class="pill LOC">LOC</span> ናይሮቢ and the relations <i>(Abiy, LEADER_OF, Ethiopia)</i>, <i>(Ruto, LEADER_OF, Kenya)</i>, <i>(Abiy, MET_WITH, Ruto)</i>. It does — see Section 12.</p>
+
+<!-- ============================ 2 ============================ -->
+<h1>2. Background: core concepts and definitions</h1>
+
+<h2>2.1 Natural Language Processing, NER and BIO tagging</h2>
+<div class="def"><b class="term">Natural Language Processing (NLP)</b> — the field of computer science and AI that builds programs able to read, analyse and generate human language (text or speech).</div>
+<div class="def"><b class="term">Corpus</b> (plural <i>corpora</i>) — a large, structured collection of texts used to study a language or to train/evaluate models. A <b>labelled</b> (annotated) corpus has extra information added by humans, e.g. which words are names; an <b>unlabelled</b> corpus is raw text.</div>
+<div class="def"><b class="term">Token / tokenization</b> — a token is a unit of text (usually a word or a punctuation mark). Tokenization is splitting text into tokens. <b>Whitespace tokenization</b> splits on spaces; <b>subword tokenization</b> (Section 2.5) splits words further into pieces.</div>
+<div class="def"><b class="term">Named Entity Recognition (NER)</b> — the task of finding spans of text that name real-world things and classifying them into types. MasakhaNER (our dataset) uses four types:
+<span class="pill PER">PER</span> persons, <span class="pill ORG">ORG</span> organizations (governments, parties, companies, agencies), <span class="pill LOC">LOC</span> locations (countries, regions, cities) and <span class="pill DATE">DATE</span> dates and time expressions.</div>
+<div class="def"><b class="term">Entity span / mention</b> — the exact sequence of tokens that names one entity, e.g. the two tokens <span class="am">አዲስ አበባ</span> form one LOC span.</div>
+<div class="def"><b class="term">Sequence labelling</b> — assigning one label to every token in a sentence. NER is usually solved as sequence labelling using the BIO scheme.</div>
+<div class="def"><b class="term">BIO tagging</b> (also IOB2) — each token gets <b>B-X</b> if it <b>B</b>egins an entity of type X, <b>I-X</b> if it is <b>I</b>nside (continues) an entity of type X, and <b>O</b> if it is <b>O</b>utside any entity. With 4 types this gives 9 labels: <code>O, B-PER, I-PER, B-ORG, I-ORG, B-LOC, I-LOC, B-DATE, I-DATE</code>. The B tag lets two adjacent entities of the same type be separated.</div>
+<table class="avoid">
+  <caption>Example of BIO tagging (from MasakhaNER, normalized)</caption>
+  <tr><th>Token</th><td class="am">ቀዳሚው</td><td class="am">የሶማሌ</td><td class="am">ክልል</td><td class="am">በአወዳይ</td><td class="am">ከተማ</td><td class="am">ለተገደሉ</td><td>…</td></tr>
+  <tr><th>Meaning</th><td>the former</td><td>of-Somali</td><td>region</td><td>in-Awaday</td><td>town</td><td>for-those-killed</td><td>…</td></tr>
+  <tr><th>Label</th><td>O</td><td>B-LOC</td><td>I-LOC</td><td>I-LOC</td><td>I-LOC</td><td>O</td><td>…</td></tr>
+</table>
+<p>Notice that the gold annotation tags the <i>whole</i> whitespace token <span class="am">የሶማሌ</span> (including the prefix <span class="am">የ</span> “of”) as part of the entity. This is central to the morphology discussion later.</p>
+
+<h2>2.2 Relation extraction</h2>
+<div class="def"><b class="term">Relation extraction (RE)</b> — identifying semantic relationships between entities, usually as <b>triples</b> <i>(head, relation, tail)</i>, e.g. <i>(Abiy Ahmed, LEADER_OF, Ethiopia)</i>. A relation can be <b>directed</b> (LEADER_OF) or <b>symmetric</b> (MET_WITH: if A met B then B met A).</div>
+<div class="def"><b class="term">Trigger</b> — a word that signals a relation or event, e.g. <span class="am">ተወያዩ</span> “discussed” signals a meeting, <span class="am">ተፈራረሙ</span> “signed” signals an agreement.</div>
+<div class="def"><b class="term">Rule-based (pattern-based) extraction</b> — relations are recognised with hand-written linguistic patterns instead of a trained model. It is used when no labelled training data exists, which is the case for Amharic relation extraction.</div>
+<div class="def"><b class="term">Pipeline / end-to-end setting</b> — in a <b>pipeline</b>, the relation extractor works on the output of the NER model; errors of the NER model therefore propagate. Evaluating with <b>gold entities</b> (the correct ones) isolates the quality of the relation rules; evaluating <b>end-to-end</b> measures what the user actually gets.</div>
+
+<h2>2.3 The Amharic language and the Fidel script</h2>
+<div class="def"><b class="term">Amharic (አማርኛ)</b> — the working language of the Federal Government of Ethiopia, a Semitic language (related to Arabic, Hebrew and Tigrinya) with tens of millions of speakers. It is considered a <b>low-resource language</b> in NLP: little labelled data and few tools exist compared with English.</div>
+<div class="def"><b class="term">Ge'ez / Fidel (ፊደል) script, abugida</b> — Amharic is written with the Ethiopic script. It is an <b>abugida</b> (alpha-syllabary): each character is a consonant+vowel <b>syllable</b>. Characters are organised in <b>families</b> (one per consonant) of seven basic <b>orders</b> (vowels), e.g. the family of <i>l</i>: <span class="am">ለ ሉ ሊ ላ ሌ ል ሎ</span> (lä, lu, li, la, le, lə, lo) and an eighth <b>labialized</b> form <span class="am">ሏ</span> (lwa). In Unicode each family occupies 8 consecutive code points (block U+1200–U+137F); we exploit this layout in normalization and in trigger matching.</div>
+<div class="def"><b class="term">Homophones (Fidel)</b> — letters that are pronounced the same today but written differently for historical reasons: <span class="am">ሀ / ሐ / ኀ</span> (h), <span class="am">ሰ / ሠ</span> (s), <span class="am">አ / ዐ</span> (glottal ʔ), <span class="am">ጸ / ፀ</span> (ts'). Writers choose freely, so <span class="am">ኃይል, ሀይል, ሃይል, ሐይል</span> are all the word “force/power”. For a computer these are four different words.</div>
+<div class="def"><b class="term">Normalization</b> — rewriting text into a canonical (standard) form so that variants become identical, e.g. mapping every <span class="am">ሐ</span> to <span class="am">ሀ</span>.</div>
+<div class="def"><b class="term">Ethiopic punctuation</b> — <span class="am">።</span> (full stop), <span class="am">፣</span> (comma), <span class="am">፤</span> (semicolon), <span class="am">፦</span> (colon/preface), <span class="am">፧</span> (question mark) and the traditional word separator <span class="am">፡</span> (now usually replaced by a space).</div>
+<div class="def"><b class="term">Code-switching</b> — mixing two languages or scripts in one text, e.g. Amharic news containing Latin-script words like <i>WHO</i>, <i>IMF</i>, <i>TPLF</i>.</div>
+
+<h2>2.4 Morphology</h2>
+<div class="def"><b class="term">Morphology / morpheme</b> — morphology is the study of word structure. A <b>morpheme</b> is the smallest meaningful unit: <i>un-help-ful</i> has three. A <b>stem</b> (or lemma, base form) is the core that carries the main meaning; <b>affixes</b> attach to it — <b>prefixes</b> before, <b>suffixes</b> after.</div>
+<div class="def"><b class="term">Root-and-pattern (templatic) morphology</b> — typical of Semitic languages: a <b>root</b> of consonants carries the core meaning and is combined with a vowel <b>pattern</b> to make words. Example: the root <i>s-b-r</i> “break” gives <span class="am">ሰበረ</span> (säbbärä, “he broke”), <span class="am">ይሰብራል</span> (yəsäbral, “he breaks”), <span class="am">ስብራት</span> (səbrat, “fracture”). Because Fidel writes syllables, changing a vowel changes the <i>character</i>, which complicates simple string matching.</div>
+<div class="def"><b class="term">Clitic</b> — a short grammatical element that behaves like a word but is attached to a neighbouring word in writing. Amharic attaches prepositions and particles to nouns, <b>including names</b>:
+<table style="margin-top:4pt">
+<tr><th>Clitic</th><th>Meaning</th><th>Example</th><th>Gloss</th></tr>
+<tr><td class="am">የ-</td><td>of (genitive)</td><td class="am">የኢትዮጵያ</td><td>of Ethiopia</td></tr>
+<tr><td class="am">በ-</td><td>in, at, by</td><td class="am">በአዲስ አበባ</td><td>in Addis Ababa</td></tr>
+<tr><td class="am">ለ-</td><td>to, for</td><td class="am">ለኢትዮጵያ</td><td>for Ethiopia</td></tr>
+<tr><td class="am">ከ-</td><td>from, with</td><td class="am">ከኬንያ</td><td>from/with Kenya</td></tr>
+<tr><td class="am">-ን</td><td>object marker (accusative)</td><td class="am">ኢትዮጵያን</td><td>Ethiopia (as object)</td></tr>
+<tr><td class="am">-ም</td><td>also, and</td><td class="am">አሜሪካም</td><td>America too</td></tr>
+<tr><td class="am">-ው / -ዋ</td><td>the (definite, masc./fem.)</td><td class="am">ከተማዋ</td><td>the city</td></tr>
+</table></div>
+<div class="def"><b class="term">Fusion</b> — sometimes a suffix merges with the last syllable instead of being written as its own character: <span class="am">ጦርነት</span> (war) + <i>-u</i> (the) = <span class="am">ጦርነቱ</span> (the war). Here <span class="am">ት</span> became <span class="am">ቱ</span> — same consonant family, different vowel order.</div>
+<div class="def"><b class="term">Morphology-aware</b> — a system that explicitly models these word-internal structures (instead of treating every surface form as unrelated), so that <span class="am">ኢትዮጵያ, የኢትዮጵያ, ለኢትዮጵያን</span> are recognised as forms of one entity.</div>
+
+<h2>2.5 Tokenization for neural models</h2>
+<div class="def"><b class="term">Vocabulary</b> — the fixed list of tokens a model knows; each gets an integer ID. Words not in the vocabulary are <b>out-of-vocabulary (OOV)</b>.</div>
+<div class="def"><b class="term">Subword tokenization</b> — splitting rare words into frequent smaller pieces so that any word can be represented with a limited vocabulary, e.g. <span class="am">ለኢትዮጵያን</span> → <span class="am">ለ</span> + <span class="am">ኢትዮጵያ</span> + <span class="am">ን</span>.</div>
+<div class="def"><b class="term">Byte-Pair Encoding (BPE)</b> — a subword algorithm. Start with single characters; repeatedly count all adjacent pairs in the training corpus and <b>merge the most frequent pair</b> into a new symbol; stop when the vocabulary reaches the desired size. Frequent words end up as single tokens, rare words as several pieces.</div>
+<div class="def"><b class="term">WordPiece</b> — similar to BPE (used by BERT), but chooses the merge that most increases the likelihood of the training data rather than raw frequency. Word-internal pieces are marked with <code>##</code>.</div>
+<div class="def"><b class="term">SentencePiece / Unigram</b> — a tokenizer that treats the input as a raw character stream (spaces become the symbol <code>▁</code>) and, in the Unigram variant, starts from a large vocabulary and prunes pieces that least reduce corpus likelihood. Our backbone model uses a SentencePiece vocabulary of 32,000 pieces.</div>
+<div class="def"><b class="term">Pre-tokenizer</b> — the rule that splits text into words before the subword model runs (e.g. on whitespace and punctuation). <b>Metaspace</b> replaces spaces with <code>▁</code> so that word starts are visible to the model.</div>
+<div class="def"><b class="term">Fertility</b> — the average number of subword tokens per word. Lower is better: less fragmentation, shorter sequences, and each piece is more meaningful.</div>
+<div class="def"><b class="term">Vocabulary extension</b> — adding new tokens to an existing pre-trained tokenizer and creating new rows in the model's embedding matrix for them.</div>
+
+<h2>2.6 Transformers, BERT and RoBERTa</h2>
+<div class="def"><b class="term">Neural network, parameters, embedding</b> — a neural network is a function with millions of adjustable numbers (<b>parameters</b> or <b>weights</b>) learned from data. An <b>embedding</b> is a vector of numbers representing a token; similar tokens get similar vectors.</div>
+<div class="def"><b class="term">Transformer</b> — the neural architecture behind modern NLP. Its key mechanism, <b>self-attention</b>, lets every token look at every other token in the sentence and compute a context-dependent representation. An <b>encoder</b> transformer reads the whole sentence at once and produces one contextual vector per token — ideal for tagging tasks like NER.</div>
+<div class="def"><b class="term">BERT / RoBERTa / XLM-R</b> — BERT (Bidirectional Encoder Representations from Transformers) is an encoder pre-trained on large text corpora; <b>RoBERTa</b> is an improved training recipe of the same architecture; <b>XLM-R</b> (XLM-RoBERTa) is a RoBERTa trained on 100 languages. “AmBERTa” denotes an Amharic-only RoBERTa.</div>
+<div class="def"><b class="term">Backbone / encoder</b> — the pre-trained transformer that turns tokens into contextual vectors; a small task-specific <b>head</b> (here a linear <b>token-classification head</b> that outputs 9 BIO label scores per token) is put on top of it.</div>
+<div class="def"><b class="term">Softmax, logits, confidence</b> — the head outputs one score (<b>logit</b>) per label; <b>softmax</b> converts them to probabilities that sum to 1. The highest probability is the prediction, and its value is used as the <b>confidence</b> shown in our UI.</div>
+
+<h2>2.7 Pre-training, fine-tuning, MLM and perplexity</h2>
+<div class="def"><b class="term">Pre-training</b> — training a model on a huge unlabelled corpus with a self-supervised objective so it learns general language knowledge.</div>
+<div class="def"><b class="term">Masked Language Modelling (MLM)</b> — the pre-training objective of BERT/RoBERTa: hide (mask) ~15% of the tokens in a sentence and train the model to predict them from the context.</div>
+<div class="def"><b class="term">Domain-Adaptive Pre-Training (DAPT)</b> — continuing MLM pre-training of an existing model on text from the target domain (here: normalized Amharic news) before fine-tuning, so that the model adapts to the domain's vocabulary and style.</div>
+<div class="def"><b class="term">Perplexity (PPL)</b> — a measure of how well a language model predicts held-out text: <code>PPL = exp(average cross-entropy loss)</code>. Intuitively, a perplexity of 10 means the model is as uncertain as if it had to choose uniformly among 10 tokens at each masked position. <b>Lower is better.</b></div>
+<div class="def"><b class="term">Fine-tuning</b> — continuing to train a pre-trained model on a small labelled dataset for a specific task (here NER). <b>Full fine-tuning</b> updates all parameters.</div>
+<div class="def"><b class="term">Training vocabulary: epoch, batch, step, learning rate, optimizer, loss</b> — the <b>loss</b> measures how wrong the predictions are (cross-entropy for classification). An <b>optimizer</b> (we use <b>AdamW</b>) changes the parameters to reduce the loss; the <b>learning rate</b> controls the step size. The data is processed in <b>batches</b> (groups of sentences); one parameter update is a <b>step</b>; one pass over the whole training set is an <b>epoch</b>. <b>Warm-up</b> slowly increases the learning rate at the start; <b>weight decay</b> is a regularizer that keeps weights small.</div>
+<div class="def"><b class="term">Train / validation / test split</b> — the <b>training set</b> is used to learn; the <b>validation (development) set</b> to choose settings and when to stop; the <b>test set</b> only once at the end to report unbiased performance. Choosing anything based on the test set would make the test score optimistic.</div>
+<div class="def"><b class="term">Overfitting and early stopping</b> — overfitting is when a model memorizes the training data and gets worse on new data. <b>Early stopping</b> evaluates on the validation set after each epoch and stops when the score has not improved for a number of epochs (the <b>patience</b>); the best checkpoint is kept.</div>
+<div class="def"><b class="term">Data augmentation</b> — creating extra training examples by modifying existing ones in ways that keep the labels correct.</div>
+<div class="def"><b class="term">Data leakage</b> — when information from the test set accidentally enters training, which inflates the scores.</div>
+
+<h2>2.8 Parameter-Efficient Fine-Tuning (PEFT) and LoRA</h2>
+<div class="def"><b class="term">PEFT</b> — methods that adapt a large model by training only a small number of new or selected parameters while the original weights stay frozen. Benefits: less memory, faster training, tiny files per task.</div>
+<div class="def"><b class="term">LoRA (Low-Rank Adaptation)</b> — for a frozen weight matrix <i>W</i> (size <i>d×k</i>), LoRA learns an update <i>ΔW = B·A</i> where <i>B</i> is <i>d×r</i> and <i>A</i> is <i>r×k</i> with a small <b>rank</b> <i>r</i> (we use r = 16). The layer computes <i>W·x + (α/r)·B·A·x</i>, where <b>alpha</b> (α = 32) scales the update. Only <i>A</i> and <i>B</i> are trained. After training, <i>B·A</i> can be <b>merged</b> into <i>W</i>, so inference costs nothing extra.</div>
+
+<h2>2.9 Evaluation metrics and statistics</h2>
+<div class="def"><b class="term">True/false positives and negatives</b> — a predicted entity that exactly matches a gold entity (same span and type) is a <b>true positive (TP)</b>; a predicted entity that is not in the gold set is a <b>false positive (FP)</b>; a gold entity that was not predicted is a <b>false negative (FN)</b>.</div>
+<div class="def"><b class="term">Precision, recall, F1</b> — <b>Precision</b> = TP / (TP + FP): of what the model found, how much is correct. <b>Recall</b> = TP / (TP + FN): of what exists, how much the model found. <b>F1</b> = 2·P·R / (P + R): the harmonic mean, high only if both are high.</div>
+<div class="def"><b class="term">Entity-level, micro and macro averages</b> — NER is scored at the <b>entity level</b> (a multi-token entity counts as correct only if all its boundaries and its type are right), using the <b>seqeval</b> library (CoNLL standard). <b>Micro</b> averaging pools all entities of all types (our main score); <b>macro</b> averaging averages the per-type scores equally.</div>
+<div class="def"><b class="term">Strict mode (IOB2)</b> — seqeval's default mode repairs invalid sequences (an <code>I-</code> without a preceding <code>B-</code> starts a new entity); <b>strict</b> mode only accepts well-formed BIO sequences.</div>
+<div class="def"><b class="term">Bootstrap confidence interval (CI)</b> — resample the 500 test sentences with replacement 2,000 times and recompute F1 each time; the range containing the middle 95% of these values is the <b>95% CI</b>. A <b>paired bootstrap</b> resamples the same sentences for two models and looks at the difference: if the 95% CI of the difference contains 0, the difference is not statistically reliable.</div>
+<div class="def"><b class="term">Ablation</b> — an experiment that removes or changes one component to measure its contribution (e.g. running the model on un-normalized input).</div>
+<div class="def"><b class="term">BLEU, ROUGE, chrF++</b> — metrics that compare generated text with reference text (used for translation/summarization). They do not apply to NER, which is why we report F1 and perplexity, the two metrics from the assignment list that fit our task.</div>
+
+<h2>2.10 Deployment technologies</h2>
+<div class="def"><b class="term">Hugging Face Hub / Transformers / Datasets / Tokenizers / PEFT</b> — the Hub is an online repository of models and datasets; <i>transformers</i>, <i>datasets</i>, <i>tokenizers</i> and <i>peft</i> are the Python libraries we used to load models, data, train tokenizers and apply LoRA. <b>Trainer</b> is the transformers training loop.</div>
+<div class="def"><b class="term">spaCy</b> — an industrial NLP library built around a processing <b>pipeline</b>: a tokenizer creates a <code>Doc</code>, then <b>components</b> add annotations (entities, attributes) in order. Custom components and custom attributes (<code>token._.stem</code>) can be registered.</div>
+<div class="def"><b class="term">API, REST, FastAPI, Uvicorn</b> — an API lets programs talk to each other; a <b>REST</b> API does so over HTTP with JSON messages. <b>FastAPI</b> is a Python framework for building such APIs; <b>Uvicorn</b> is the web server that runs it.</div>
+<div class="def"><b class="term">Gradio / Hugging Face Spaces</b> — Gradio builds web interfaces for ML models in Python; Spaces hosts such apps for free on the Hugging Face Hub.</div>
+<div class="def"><b class="term">Quantization (INT8)</b> — storing weights as 8-bit integers instead of 32-bit floats. <b>Dynamic quantization</b> converts weights ahead of time and quantizes activations on the fly. It reduces size and speeds up CPU inference with a small accuracy cost. <b>Latency</b> is the time for one request; <b>throughput</b> the number of sentences processed per second.</div>
+<div class="def"><b class="term">Web scraping, robots.txt, rate limiting</b> — scraping is downloading web pages automatically and extracting their content (we used <b>BeautifulSoup</b> to parse HTML). <b>robots.txt</b> is a file in which a site states what automated clients may access; <b>rate limiting</b> means waiting between requests so as not to overload a server.</div>
+
+<!-- ============================ 3 ============================ -->
+<h1>3. System overview and environment</h1>
+<h2>3.1 Architecture</h2>
+<figure>
+<svg viewBox="0 0 760 330" width="100%" xmlns="http://www.w3.org/2000/svg">
+  <defs><marker id="a" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 z" fill="#5b6475"/></marker></defs>
+  <g font-size="11">
+    <rect x="10" y="20" width="150" height="70" rx="8" fill="#eef4fb" stroke="#2f5d8a"/>
+    <text x="85" y="42" text-anchor="middle" font-weight="700">1. Collection</text>
+    <text x="85" y="58" text-anchor="middle" font-size="9.5">BBC Amharic scraper</text>
+    <text x="85" y="71" text-anchor="middle" font-size="9.5">MasakhaNER · Hub news</text>
+    <text x="85" y="84" text-anchor="middle" font-size="9.5">Telegram (optional)</text>
+    <rect x="200" y="20" width="160" height="70" rx="8" fill="#f2f9f6" stroke="#1f6f5c"/>
+    <text x="280" y="42" text-anchor="middle" font-weight="700">2. Normalization</text>
+    <text x="280" y="58" text-anchor="middle" font-size="9.5">homophones · cleaning</text>
+    <text x="280" y="71" text-anchor="middle" font-size="9.5">code-switching · filter</text>
+    <text x="280" y="84" text-anchor="middle" font-size="9.5">dedup · leakage guard</text>
+    <rect x="400" y="20" width="160" height="70" rx="8" fill="#f2f9f6" stroke="#1f6f5c"/>
+    <text x="480" y="42" text-anchor="middle" font-weight="700">3. Tokenization</text>
+    <text x="480" y="58" text-anchor="middle" font-size="9.5">BPE · WordPiece</text>
+    <text x="480" y="71" text-anchor="middle" font-size="9.5">fertility · clitic boundaries</text>
+    <text x="480" y="84" text-anchor="middle" font-size="9.5">vocabulary extension</text>
+    <rect x="600" y="20" width="150" height="70" rx="8" fill="#fbf5ee" stroke="#b5651d"/>
+    <text x="675" y="42" text-anchor="middle" font-weight="700">4a. MLM adaptation</text>
+    <text x="675" y="58" text-anchor="middle" font-size="9.5">continued pre-training</text>
+    <text x="675" y="71" text-anchor="middle" font-size="9.5">on normalized news</text>
+    <text x="675" y="84" text-anchor="middle" font-size="9.5">PPL 12.40 → 9.85</text>
+    <rect x="600" y="125" width="150" height="70" rx="8" fill="#fbf5ee" stroke="#b5651d"/>
+    <text x="675" y="147" text-anchor="middle" font-weight="700">4b. NER fine-tuning</text>
+    <text x="675" y="163" text-anchor="middle" font-size="9.5">full FT · LoRA (PEFT)</text>
+    <text x="675" y="176" text-anchor="middle" font-size="9.5">morph. augmentation</text>
+    <text x="675" y="189" text-anchor="middle" font-size="9.5">BIO, 9 labels</text>
+    <rect x="400" y="125" width="160" height="70" rx="8" fill="#f6f1fa" stroke="#6b4b8a"/>
+    <text x="480" y="147" text-anchor="middle" font-weight="700">5. Evaluation</text>
+    <text x="480" y="163" text-anchor="middle" font-size="9.5">seqeval F1 · bootstrap CI</text>
+    <text x="480" y="176" text-anchor="middle" font-size="9.5">morphological buckets</text>
+    <text x="480" y="189" text-anchor="middle" font-size="9.5">model selection (val F1)</text>
+    <rect x="200" y="125" width="160" height="70" rx="8" fill="#f6f1fa" stroke="#6b4b8a"/>
+    <text x="280" y="147" text-anchor="middle" font-weight="700">Optimization</text>
+    <text x="280" y="163" text-anchor="middle" font-size="9.5">INT8 dynamic</text>
+    <text x="280" y="176" text-anchor="middle" font-size="9.5">quantization</text>
+    <text x="280" y="189" text-anchor="middle" font-size="9.5">2.35× faster</text>
+    <rect x="10" y="125" width="150" height="70" rx="8" fill="#eef4fb" stroke="#2f5d8a"/>
+    <text x="85" y="147" text-anchor="middle" font-weight="700">Morphology module</text>
+    <text x="85" y="163" text-anchor="middle" font-size="9.5">clitic analyzer</text>
+    <text x="85" y="176" text-anchor="middle" font-size="9.5">88k-word lexicon</text>
+    <text x="85" y="189" text-anchor="middle" font-size="9.5">used by every stage</text>
+    <rect x="10" y="235" width="740" height="80" rx="8" fill="#fff" stroke="#1d2433" stroke-dasharray="4 3"/>
+    <text x="380" y="253" text-anchor="middle" font-weight="700">7. Deployment — spaCy custom pipeline</text>
+    <rect x="25" y="263" width="160" height="40" rx="6" fill="#f2f9f6" stroke="#1f6f5c"/><text x="105" y="280" text-anchor="middle" font-size="9.5">AmharicTokenizer</text><text x="105" y="294" text-anchor="middle" font-size="9">(normalizes text)</text>
+    <rect x="205" y="263" width="160" height="40" rx="6" fill="#eef4fb" stroke="#2f5d8a"/><text x="285" y="280" text-anchor="middle" font-size="9.5">amharic_morphology</text><text x="285" y="294" text-anchor="middle" font-size="9">prefix/stem/suffix</text>
+    <rect x="385" y="263" width="160" height="40" rx="6" fill="#fbf5ee" stroke="#b5651d"/><text x="465" y="280" text-anchor="middle" font-size="9.5">amharic_ner</text><text x="465" y="294" text-anchor="middle" font-size="9">transformer → doc.ents</text>
+    <rect x="565" y="263" width="170" height="40" rx="6" fill="#f6f1fa" stroke="#6b4b8a"/><text x="650" y="280" text-anchor="middle" font-size="9.5">amharic_relations</text><text x="650" y="294" text-anchor="middle" font-size="9">→ doc._.relations</text>
+  </g>
+  <g stroke="#5b6475" stroke-width="1.4" fill="none" marker-end="url(#a)">
+    <path d="M160,55 H198"/><path d="M360,55 H398"/><path d="M560,55 H598"/><path d="M675,90 V123"/>
+    <path d="M600,160 H562"/><path d="M400,160 H362"/><path d="M200,160 H162"/><path d="M85,195 V233"/>
+    <path d="M185,283 H203"/><path d="M365,283 H383"/><path d="M545,283 H563"/>
+  </g>
+  <text x="380" y="225" text-anchor="middle" font-size="9.5" fill="#5b6475">served by FastAPI (/analyze) → Gradio web UI · deployable to Hugging Face Spaces</text>
+</svg>
+<figcaption>Figure 1 — The end-to-end pipeline. Every stage is a separate Python module that can be run on its own.</figcaption>
+</figure>
+
+<h2>3.2 Environment and tools</h2>
+<table>
+  <tr><th>Item</th><th>Value</th></tr>
+  <tr><td>Hardware</td><td>8-core laptop CPU, 15 GB RAM, <b>no GPU</b> (all training ran on CPU)</td></tr>
+  <tr><td>Operating system</td><td>Linux (Arch-based)</td></tr>
+  <tr><td>Python</td><td>3.12 in a virtual environment created with <code>uv</code> (the system Python 3.14 is too new for some ML wheels)</td></tr>
+  <tr><td>Main libraries</td><td>PyTorch 2.5.1 (CPU), transformers 4.46.3, datasets 3.1.0, tokenizers 0.20, peft 0.13.2, seqeval, spaCy 3.8.2, BeautifulSoup 4, requests, Telethon, FastAPI, Uvicorn, Gradio 6, matplotlib, TensorBoard, pytest</td></tr>
+  <tr><td>Version control</td><td>git; public GitHub repository with descriptive commits that tell the story of the project (Section 14)</td></tr>
+</table>
+
+<h2>3.3 Choice of the backbone model</h2>
+<p>The assignment names <b>EthioNLP/AmBERTa</b>. When we queried the Hugging Face API for it, it returned <i>401 — not available</i>; the checkpoint is not publicly released. We therefore compared the public alternatives:</p>
+<table>
+  <tr><th>Model</th><th>Type</th><th class="n">Size</th><th>Comment</th></tr>
+  <tr><td><b>rasyosef/roberta-medium-amharic</b></td><td>Amharic-only RoBERTa (XLM-R architecture)</td><td class="n">41.9 M params</td><td><b>Chosen</b>: AmBERTa-class, Amharic SentencePiece vocabulary, trainable on CPU</td></tr>
+  <tr><td>rasyosef/roberta-base-amharic</td><td>Amharic RoBERTa base</td><td class="n">110 M</td><td>~3× slower on CPU</td></tr>
+  <tr><td>uhhlt/am-roberta</td><td>Amharic RoBERTa</td><td class="n">≈ 443 MB</td><td>too slow without GPU</td></tr>
+  <tr><td>Davlan/afro-xlmr-base, xlm-roberta-base</td><td>multilingual</td><td class="n">270 M+</td><td>large; poorer Amharic tokenization (Section 7)</td></tr>
+</table>
+<p>The chosen model has 8 transformer layers, hidden size 512 and a 32,000-piece vocabulary. One training step on a batch of 16 sentences took about 1.07 s on 4 CPU threads, making all experiments feasible on a laptop. Every script accepts <code>--model</code>/<code>--base-model</code>, so AmBERTa or any other encoder can be substituted without code changes.</p>
+
+<h2>3.4 Repository structure</h2>
+<pre>src/amner/
+  collect/bbc_amharic.py, hf_benchmarks.py, telegram_channels.py   Stage 1
+  normalize.py, build_corpus.py                                    Stage 2
+  morphology.py, build_lexicon.py, resources/amharic_lexicon.tsv   morphology
+  tokenization.py                                                  Stage 3
+  data.py, train_mlm.py, train_ner.py                              Stage 4
+  evaluate.py, significance.py, select_best.py, summarize.py       Stage 5
+  relations.py, evaluate_re.py                                     relations
+  optimize.py                                                      optimization
+  inference.py, spacy_pipeline.py, service.py                      Stage 7
+  explain.py, tb_export.py                                         explainability tabs, TensorBoard
+api/main.py (FastAPI) · app/gradio_app.py (UI) · runs/ (TensorBoard)
+scripts/ (run_pipeline.sh, launch_demo.sh, rehearse_demo.py, deploy_space.py)
+eval/re_gold.jsonl · reports/ (all metrics) · tests/ (16 unit tests) · PROCESS.md · README.md</pre>
+
+<!-- ============================ 4 ============================ -->
+<h1>4. Stage 1 — Data collection</h1>
+<p>We needed two kinds of data: <b>labelled</b> NER data to train and test the model, and a large <b>unlabelled</b> Amharic news corpus to train tokenizers, adapt the language model and build the morphological lexicon. Every collector writes the same JSON-Lines schema (one JSON object per line): <code>{"source", "url", "title", "date", "text"}</code>, so later stages treat all sources uniformly.</p>
+
+<h2>4.1 Labelled benchmark: MasakhaNER 1.0 (Amharic)</h2>
+<p><b>MasakhaNER</b> is a NER benchmark for African languages created by the Masakhane research community from local news. Its Amharic part contains news sentences annotated with PER, ORG, LOC and DATE in the BIO scheme.</p>
+<ul>
+  <li><b>How it was obtained:</b> <code>python -m amner.collect.hf_benchmarks</code>. The official dataset repository uses an old <i>loading script</i>, which current versions of the <code>datasets</code> library refuse to execute for security reasons. We instead read the automatically generated <b>Parquet</b> files that the Hub publishes on the special branch <code>refs/convert/parquet</code>. The label names were preserved and verified.</li>
+  <li><b>Splits:</b> 1,750 training, 250 validation and 500 test sentences (25,819 / 3,749 / 7,449 tokens).</li>
+</ul>
+<table>
+  <caption>Label distribution in the training set (number of tokens)</caption>
+  <tr><th>Label</th><td>O</td><td>B-LOC</td><td>I-LOC</td><td>B-PER</td><td>I-PER</td><td>B-DATE</td><td>I-DATE</td><td>B-ORG</td><td>I-ORG</td></tr>
+  <tr><th>Count</th><td class="n">21,824</td><td class="n">1,050</td><td class="n">456</td><td class="n">505</td><td class="n">378</td><td class="n">415</td><td class="n">529</td><td class="n">277</td><td class="n">385</td></tr>
+</table>
+<p>LOC is the most frequent entity type and ORG the rarest (277 entities) — ORG later turns out to be the hardest type.</p>
+
+<h2>4.2 Unlabelled news from official repositories (Hugging Face Hub)</h2>
+<ul>
+  <li><b>MasakhaNEWS (Amharic)</b> — 1,311 news articles (headline + text).</li>
+  <li><b>rasyosef/amharic-news-category-classification</b> — the first 8,000 of 49,971 Amharic news articles (headline + article body), covering national news, politics, business, sports, entertainment and world news.</li>
+</ul>
+
+<h2>4.3 Web scraping: BBC News Amharic with BeautifulSoup</h2>
+<p><code>python -m amner.collect.bbc_amharic --max-articles 600</code></p>
+<ol>
+  <li><b>Discovery.</b> The scraper downloads the BBC Amharic home page and extracts, with regular expressions, links to <i>topic</i> pages (<code>/amharic/topics/&lt;id&gt;</code>) and <i>article</i> pages (<code>/amharic/articles/&lt;id&gt;</code>). It then walks up to 10 pages of each topic (<code>?page=1…10</code>). This discovered <b>1,939 unique article URLs</b>.</li>
+  <li><b>Parsing.</b> For each article, BeautifulSoup (with the fast <code>lxml</code> parser) extracts the headline (<code>&lt;h1&gt;</code>), the publication date (<code>&lt;time datetime&gt;</code> or the <code>datePublished</code> metadata) and all paragraphs (<code>&lt;p&gt;</code>) inside the <code>&lt;main&gt;</code> element, skipping paragraphs inside figures, captions, side panels, navigation and footers (which would otherwise insert menu text such as “BBC News, አማርኛ — ወደ ዋናው ይዘት ይለፉ”).</li>
+  <li><b>Storage.</b> Each article is appended to <code>data/raw/bbc_amharic.jsonl</code>. URLs already present are skipped, so the scraper can be interrupted and resumed.</li>
+</ol>
+<div class="key"><b>Responsible scraping.</b> Before each request the scraper checks <code>robots.txt</code> with Python's <code>urllib.robotparser</code>; it identifies itself with a descriptive User-Agent (“AmharicNER-StudentProject/1.0 (academic research)”), waits 1 second between requests and uses a 20-second timeout. We also checked the robots.txt of <i>The Ethiopian Reporter</i>: it declares <code>Content-Signal: ai-train=no</code> and blocks AI crawlers, so we <b>deliberately did not scrape it</b>. Scraped text is not redistributed in the repository.</div>
+<p><b>Result:</b> 581 articles were saved (a few requests timed out or pages contained no body text).</p>
+
+<h2>4.4 Telegram channels with Telethon (implemented, optional)</h2>
+<p>Many Ethiopian news outlets publish on Telegram. <code>src/amner/collect/telegram_channels.py</code> uses the <b>Telethon</b> library (a client for Telegram's official API) to download messages from public channels into the same JSONL schema. Using it requires personal API credentials (<code>api_id</code> and <code>api_hash</code> from my.telegram.org) and logging in with a phone number, so the credentials are read from a <code>.env</code> file that is excluded from git. The group decided not to run it for this submission; it can be enabled with one command and the messages then flow through the rest of the pipeline automatically.</p>
+
+<table>
+  <caption>Collected raw data</caption>
+  <tr><th>Source</th><th>Method</th><th class="n">Documents</th><th class="n">Sentences kept after cleaning</th></tr>
+  <tr><td>MasakhaNER Amharic</td><td>Hub (parquet)</td><td class="n">2,500 sentences</td><td>gold NER data</td></tr>
+  <tr><td>BBC News Amharic</td><td>BeautifulSoup scraper</td><td class="n">581</td><td class="n">16,309</td></tr>
+  <tr><td>MasakhaNEWS (amh)</td><td>Hub</td><td class="n">1,311</td><td class="n">35,461</td></tr>
+  <tr><td>Amharic news classification corpus</td><td>Hub</td><td class="n">8,000</td><td class="n">183,787</td></tr>
+  <tr><td><b>Total unlabelled</b></td><td></td><td class="n"><b>9,892</b></td><td class="n"><b>235,557</b></td></tr>
+</table>
+
+<!-- ============================ 5 ============================ -->
+<h1>5. Stage 2 — Normalization and cleaning</h1>
+<p>Code: <code>src/amner/normalize.py</code> (the rules) and <code>src/amner/build_corpus.py</code> (applying them to all data). Normalization is applied identically to the training corpus, to the NER data and to every user input at run time; otherwise the model would see different spellings in training and in use.</p>
+
+<h2>5.1 Step 1 — Noise removal (<code>clean_text</code>)</h2>
+<ul>
+  <li>HTML entities are decoded (<code>&amp;quot;</code> → <code>"</code>) and remaining HTML tags removed.</li>
+  <li>URLs, e-mail addresses, @mentions and #hashtags are removed (typical of Telegram/social media).</li>
+  <li>Emojis and invisible control characters are removed.</li>
+</ul>
+
+<h2>5.2 Step 2 — Fidel homophone normalization (<code>normalize_chars</code>)</h2>
+<p>Because each Fidel family occupies consecutive Unicode positions in a fixed vowel order, a whole family can be mapped onto another family <b>order by order</b> with simple arithmetic. We use the canonical choices common in Amharic information retrieval:</p>
+<table>
+  <tr><th>Variant family</th><th>→ Canonical</th><th>All seven orders mapped</th><th>Example</th></tr>
+  <tr><td class="am">ሐ (ḥa)</td><td class="am">ሀ</td><td class="am">ሐ ሑ ሒ ሓ ሔ ሕ ሖ → ሀ ሁ ሂ ሃ ሄ ህ ሆ</td><td class="am">ሕዝብ → ህዝብ</td></tr>
+  <tr><td class="am">ኀ (ḫa)</td><td class="am">ሀ</td><td class="am">ኀ ኁ ኂ ኃ ኄ ኅ ኆ → ሀ ሁ ሂ ሃ ሄ ህ ሆ</td><td class="am">ኃይል → ሀይል</td></tr>
+  <tr><td class="am">ሠ (śa)</td><td class="am">ሰ</td><td class="am">ሠ ሡ ሢ ሣ ሤ ሥ ሦ → ሰ ሱ ሲ ሳ ሴ ስ ሶ</td><td class="am">ሥራ → ስራ</td></tr>
+  <tr><td class="am">ዐ (ʿa)</td><td class="am">አ</td><td class="am">ዐ ዑ ዒ ዓ ዔ ዕ ዖ → አ ኡ ኢ ኣ ኤ እ ኦ</td><td class="am">ዐቢይ → አቢይ</td></tr>
+  <tr><td class="am">ፀ (ṣ́a)</td><td class="am">ጸ</td><td class="am">ፀ ፁ ፂ ፃ ፄ ፅ ፆ → ጸ ጹ ጺ ጻ ጼ ጽ ጾ</td><td class="am">ፀሐይ → ጸሀይ</td></tr>
+</table>
+<p>Additional rules: (a) the 4th-order forms <span class="am">ሃ ሓ ኃ</span> → <span class="am">ሀ</span> and <span class="am">ኣ ዓ</span> → <span class="am">አ</span>, because they are pronounced like the 1st order (<span class="am">ዓመት → አመት</span> “year”); (b) two-character <b>labial</b> spellings are joined into the single labialized letter (<span class="am">ሉዋ → ሏ</span>, generated automatically for 25 consonant families using Unicode character names); (c) archaic labialized letters are modernized (<span class="am">ቍ → ቁ, ኵ → ኩ, ጕ → ጉ</span>); (d) Ethiopic digits <span class="am">፩–፱</span> → 1–9; (e) the text is put in Unicode NFC form so that identical-looking characters have identical codes.</p>
+<p>The most frequent characters rewritten in the raw corpus were <span class="am">ዓ</span> (50,144 times), <span class="am">ሥ</span> (39,079), <span class="am">ዕ</span> (25,946), <span class="am">ሃ</span> (25,632), <span class="am">ሕ</span> (18,721), <span class="am">ሠ</span> (13,720) and <span class="am">ኃ</span> (12,545).</p>
+
+<h2>5.3 Step 3 — Punctuation normalization</h2>
+<ul>
+  <li><span class="am">፡፡</span> and <code>::</code> (two word-separators typed instead of a full stop) → <span class="am">።</span>; the old word separator <span class="am">፡</span> → space; <span class="am">፥</span> → <span class="am">፣</span>.</li>
+  <li>Curly quotes, guillemets and dashes are unified; repeated punctuation (<code>!!!</code>) is collapsed.</li>
+  <li>Spaces are inserted around <span class="am">። ፣ ፤ ፦ ፧</span> so they become separate tokens.</li>
+</ul>
+
+<h2>5.4 Step 4 — Code-switching policy</h2>
+<p>Latin-script words inside Amharic text can be <b>kept</b> (default), <b>tagged</b> as <code>&lt;lat&gt;WHO&lt;/lat&gt;</code> or <b>dropped</b>. We keep them because many are entities (WHO, IMF, TPLF, BBC). The corpus contained 10,915 Latin-script words. <i>Bug found:</i> the first regular expression used <code>\b</code> (word boundary), which does not fire between a Fidel letter and a Latin letter because Python treats both as word characters — so <span class="am">የ</span>WHO was missed. It now uses explicit look-arounds <code>(?&lt;![A-Za-z])…(?![A-Za-z])</code>, covered by a unit test.</p>
+
+<h2>5.5 Step 5 — Sentence splitting, filtering, de-duplication, leakage guard</h2>
+<ol>
+  <li><b>Sentence splitting</b> on <span class="am">። ! ? ፧</span>.</li>
+  <li><b>Filtering:</b> keep a sentence only if it has at least 4 tokens and at least 60% of its letters are Ethiopic. Inspection of dropped lines showed short fragments such as <span class="am">ለምን?</span> (“why?”), <span class="am">ሌላስ?</span> (“what else?”), or quotation tails.</li>
+  <li><b>Exact de-duplication</b> after normalization (news sites repeat sentences, e.g. bylines).</li>
+  <li><b>Leakage guard:</b> any sentence identical to a MasakhaNER validation or test sentence is removed from the unlabelled corpus, so neither the tokenizer nor the MLM adaptation can ever see evaluation text. (No overlaps were found, but the check stays in the pipeline.)</li>
+  <li>Shuffle (fixed seed 13) and split 98% / 2% into <code>corpus_train.txt</code> and <code>corpus_valid.txt</code>.</li>
+</ol>
+<table>
+  <caption>Corpus statistics (reports/corpus_stats.json)</caption>
+  <tr><td>Raw documents / characters</td><td class="n">9,892 / 20.86 M</td></tr>
+  <tr><td>Raw sentences</td><td class="n">319,937</td></tr>
+  <tr><td>Dropped by the filter</td><td class="n">77,326</td></tr>
+  <tr><td>Dropped as duplicates</td><td class="n">7,054</td></tr>
+  <tr><td>Dropped for overlapping NER val/test</td><td class="n">0</td></tr>
+  <tr><td><b>Kept sentences</b> (train / held-out)</td><td class="n"><b>235,557</b> (230,846 / 4,711)</td></tr>
+  <tr><td>Tokens / distinct word types</td><td class="n">4,037,042 / 311,028</td></tr>
+</table>
+
+<h2>5.6 Normalizing the labelled data without breaking the labels</h2>
+<p>For MasakhaNER we apply <code>normalize_token</code>, which only replaces characters <i>inside</i> each token and never adds or removes spaces. The number of tokens therefore stays the same and every BIO label stays aligned with its token. The original spelling is kept in a <code>raw_tokens</code> field so that we can later measure the effect of normalization (Section 9.2).</p>
+<div class="key"><b>Finding:</b> normalization changed the spelling of <b>7.9% of all MasakhaNER training tokens</b> (2,040 of 25,819; 7.9% validation, 6.9% test). Without normalization, one word in every 13 would be split across spelling variants.</div>
+
+<!-- ============================ 6 ============================ -->
+<h1>6. The morphology module (clitic analysis)</h1>
+<p>Code: <code>src/amner/morphology.py</code>. This module is what makes the project <i>morphology-aware</i>; it is used by the tokenizer evaluation, the training augmentation, the error analysis, the relation extractor and the web interface.</p>
+
+<h2>6.1 The problem it solves</h2>
+<p>MasakhaNER labels whole whitespace tokens, so the clitics are part of the entity tokens: <span class="am">በአወዳይ</span> is labelled as a location. Every inflected form (<span class="am">ኢትዮጵያ, የኢትዮጵያ, በኢትዮጵያ, ለኢትዮጵያ, ኢትዮጵያን, ኢትዮጵያም …</span>) is a separate, rarer word for the model. In addition, a downstream user wants the clean name <span class="am">ኢትዮጵያ</span>, not <span class="am">ለኢትዮጵያን</span>, for example to link relations.</p>
+
+<h2>6.2 Affix inventory</h2>
+<table>
+  <tr><th>Prefix clitics (longest first)</th><td class="am">እንደ- (like), እስከ- (until), ወደ- (towards), ስለ- (about), ከነ-, በነ-, ለነ-, የነ- (with/of … and company), ከ-, በ-, ለ-, የ-</td></tr>
+  <tr><th>Suffix clitics</th><td class="am">-ንም, -ውን, -ዋን, -ቱን, -ኛው, -ም, -ን, -ና, -ው, -ዋ</td></tr>
+  <tr><th>Minimum stem</th><td>2 Fidel characters (syllables)</td></tr>
+</table>
+<p>A full root-and-pattern analyser would be much heavier; for NER, only the <i>outer</i> clitics matter, and in the vast majority of cases they are written as separate syllables, so string-level stripping is adequate.</p>
+
+<h2>6.3 Greedy analysis and its failure</h2>
+<p>The first (greedy) version strips the longest matching prefix and then the longest matching suffix. It works for <span class="am">በኢትዮጵያ → በ + ኢትዮጵያ</span>, but it <b>destroys names that merely end in a suffix-like syllable</b>: <span class="am">ሱዳን → ሱዳ</span> (Sudan), <span class="am">ፑቲን → ፑቲ</span> (Putin), <span class="am">ኮሚሽን → ኮሚሽ</span> (commission), <span class="am">ለገሠ → ገሰ</span> (a personal name beginning with <span class="am">ለ</span>).</p>
+
+<h2>6.4 Lexicon-constrained analysis (the final method)</h2>
+<p>We built a <b>frequency lexicon</b> (<code>python -m amner.build_lexicon</code>): the count of every word in the cleaned corpus plus the NER training data, keeping words seen at least 3 times — <b>87,975 word types</b>, stored in the package (<code>resources/amharic_lexicon.tsv</code>, 1.5 MB) so that the analyser behaves identically in training, evaluation and the deployed app. The algorithm:</p>
+<ol>
+  <li>Generate every candidate split <i>prefix + stem + suffix</i> (including “no prefix” and “no suffix”) with a stem of at least 2 characters.</li>
+  <li>Accept a candidate only if the stem is a <b>known word</b> (frequency ≥ 3) and its frequency is at least <b>10%</b> of the frequency of the full surface form.</li>
+  <li>Among accepted candidates choose the one with the <b>most frequent stem</b> (ties: more affix material removed). If none is accepted, the word is left intact.</li>
+</ol>
+<div class="note"><b>Why 10% and not 100%?</b> Our first rule required the stem to be at least as frequent as the surface form. That failed in an instructive way: in news, the genitive form <span class="am">የኢትዮጵያ</span> (“of Ethiopia”) is <i>more frequent</i> than bare <span class="am">ኢትዮጵያ</span>, so the prefix was never removed. With the relative threshold of 0.1 the relation-extraction F1 (gold entities) rose from 0.752 to 0.973 (Section 10).</div>
+<table>
+  <caption>Behaviour of the two analysers</caption>
+  <tr><th>Word</th><th>Greedy</th><th>Lexicon-constrained</th><th>Correct?</th></tr>
+  <tr><td class="am">የኢትዮጵያ</td><td class="am">የ + ኢትዮጵያ</td><td class="am">የ + ኢትዮጵያ</td><td>both ✓</td></tr>
+  <tr><td class="am">ከኬንያው</td><td class="am">ከ + ኬንያ + ው</td><td class="am">ከ + ኬንያ + ው</td><td>both ✓</td></tr>
+  <tr><td class="am">ኢትዮጵያንም</td><td class="am">ኢትዮጵያ + ንም</td><td class="am">ኢትዮጵያ + ንም</td><td>both ✓</td></tr>
+  <tr><td class="am">ሱዳን</td><td class="am">ሱዳ + ን</td><td class="am">ሱዳን</td><td>lexicon ✓</td></tr>
+  <tr><td class="am">ፑቲን</td><td class="am">ፑቲ + ን</td><td class="am">ፑቲን</td><td>lexicon ✓</td></tr>
+  <tr><td class="am">ለገሠ (name)</td><td class="am">ለ + ገሰ</td><td class="am">ለገሰ</td><td>lexicon ✓</td></tr>
+</table>
+
+<h2>6.5 Uses of the analyser</h2>
+<ul>
+  <li><b>Entity lemmas</b> — for a multi-token entity the prefix of the first token and the suffix of the last token are removed: <span class="am">በአዲስ አበባ → አዲስ አበባ</span>, <span class="am">የአፍሪካ ሕብረት ኮሚሽን → አፍሪካ ህብረት ኮሚሽን</span>.</li>
+  <li><b>Affix buckets</b> for error analysis (bare / prefix / suffix / prefix+suffix).</li>
+  <li><b>Morphology-aware data augmentation</b> (Section 8.4).</li>
+  <li><b>Per-token morphology table</b> in the spaCy pipeline and the web UI (<code>token._.prefix</code>, <code>._.stem</code>, <code>._.suffix</code>).</li>
+</ul>
+
+<!-- ============================ 7 ============================ -->
+<h1>7. Stage 3 — Tokenization</h1>
+<p>Code: <code>src/amner/tokenization.py</code>. Command: <code>python -m amner.tokenization</code>. Output: <code>artifacts/tokenizers/</code> and <code>reports/tokenizer_eval.json</code>.</p>
+
+<h2>7.1 Training two custom tokenizers</h2>
+<p>With the Hugging Face <code>tokenizers</code> library we trained, on the normalized corpus plus the NER training text:</p>
+<ul>
+  <li>a <b>BPE</b> tokenizer: NFC normalizer, pre-tokenizer = Metaspace (SentencePiece-style <code>▁</code> word markers) followed by punctuation splitting, vocabulary 16,000, minimum pair frequency 2, special tokens <code>&lt;s&gt; &lt;pad&gt; &lt;/s&gt; &lt;unk&gt; &lt;mask&gt;</code>;</li>
+  <li>a <b>WordPiece</b> tokenizer with whitespace + punctuation pre-tokenization and the same vocabulary size.</li>
+</ul>
+<p>The BPE tokenizer is also saved in Hugging Face <code>PreTrainedTokenizerFast</code> format so that it can be loaded with <code>AutoTokenizer</code>.</p>
+
+<h2>7.2 Intrinsic evaluation</h2>
+<p>We compared five tokenizers on the 4,711 held-out corpus sentences (fertility, single-piece rate, unknown-token rate) and on the entity tokens of the NER test set. We also defined a morphology-specific metric:</p>
+<div class="def"><b class="term">Clitic-boundary recall</b> — for every test entity token that carries a clitic (according to the lexicon analyser), we check whether the tokenizer places a subword boundary <i>exactly</i> between the clitic and the stem (e.g. <span class="am">በ | ኢትዮጵያ</span>). If it does, the model sees the same stem piece regardless of the clitic. 294 such boundaries were checked.</div>
+<table>
+  <tr><th>Tokenizer</th><th class="n">Vocabulary</th><th class="n">Fertility ↓</th><th class="n">Single-piece words % ↑</th><th class="n">Unknown %</th><th class="n">Clitic-boundary recall %</th></tr>
+  <tr><td>Custom BPE</td><td class="n">16,000</td><td class="n">1.400</td><td class="n">73.3</td><td class="n">0.000</td><td class="n">10.9</td></tr>
+  <tr><td>Custom WordPiece</td><td class="n">16,000</td><td class="n">1.394</td><td class="n">73.3</td><td class="n">0.000</td><td class="n">8.2</td></tr>
+  <tr><td>Backbone (Amharic SentencePiece)</td><td class="n">32,000</td><td class="n"><b>1.336</b></td><td class="n"><b>77.5</b></td><td class="n">0.000</td><td class="n">34.7</td></tr>
+  <tr><td>XLM-R (multilingual)</td><td class="n">250,002</td><td class="n">2.066</td><td class="n">45.6</td><td class="n">0.000</td><td class="n">53.4</td></tr>
+  <tr><td>Backbone + extension</td><td class="n">32,057</td><td class="n"><b>1.333</b></td><td class="n"><b>77.6</b></td><td class="n">0.000</td><td class="n">34.7</td></tr>
+</table>
+<h3>What we learned</h3>
+<ul>
+  <li><b>The monolingual Amharic tokenizer is far more efficient</b> than the multilingual one: 1.34 vs 2.07 pieces per word. XLM-R must share its vocabulary among 100 languages and splits Amharic words into many small pieces — this confirms the choice of an Amharic backbone.</li>
+  <li>Our 16k BPE/WordPiece are close to the backbone despite half the vocabulary, showing the corpus is representative.</li>
+  <li><b>Frequency-driven tokenizers ignore morphology:</b> they learn frequent inflected forms such as <span class="am">የኢትዮጵያ</span> as single units, so only 8–35% of clitic boundaries are respected. XLM-R's higher value is only an artefact of splitting everything. Subword tokenization alone therefore does <i>not</i> solve the Amharic clitic problem, which is why we model morphology explicitly (Sections 6, 8.4, 9.3).</li>
+</ul>
+
+<h2>7.3 Extending the backbone vocabulary</h2>
+<p>We selected words that (1) occur at least 20 times in the corpus, (2) are learned as a whole-word unit by our BPE, (3) are not already in the backbone vocabulary and (4) are split into <b>three or more pieces</b> by the backbone. Only <b>57 words</b> qualified, and they are revealing:</p>
+<p class="am" style="font-size:9.8pt">ቻምፒዮና · ክትባቱን · ሀይማኖታዊ · በውሀ · የነሀስ · ክትባቱ · ትእግስት · ከሰአት · በበአሉ · ቻምፒዮን · በቶኪዮ · መጸዳጃ · ሊቀመንበሩ · መዋእለ · ስታዲየሞች · የማእድን · ወርሀዊ · የህንጻ · ሀያላን · ስእል · የበአሉ · የእውቅና · አፈጻጸሙ · ልኡል · የጸሀይ …</p>
+<p>Almost all are <b>normalized spellings</b> (<span class="am">ሀይማኖታዊ</span> instead of <span class="am">ሃይማኖታዊ</span>, <span class="am">ከሰአት</span> instead of <span class="am">ከሰዓት</span>, <span class="am">ልኡል</span> instead of <span class="am">ልዑል</span>) — the backbone was pre-trained on un-normalized text and has never seen these forms. They were added with <code>AddedToken(single_word=True)</code> so they only match whole words. The corresponding embedding rows are created in the MLM stage and initialised as the <b>mean of the embeddings of the pieces</b> the word used to be split into, so training starts from a meaningful point. This mismatch between normalized input and un-normalized pre-training is also the main motivation for the MLM adaptation in Section 8.1.</p>
+
+<!-- ============================ 8 ============================ -->
+<h1>8. Stage 4 — Model adaptation and fine-tuning</h1>
+
+<h2>8.1 Domain-adaptive masked-language modelling</h2>
+<p>Code: <code>src/amner/train_mlm.py</code>.</p>
+<pre>python -m amner.train_mlm --base-model rasyosef/roberta-medium-amharic \
+    --extended-tokenizer artifacts/tokenizers/backbone_extended \
+    --out artifacts/mlm_dapt --max-steps 800</pre>
+<ol>
+  <li>Load the backbone with its masked-LM head and the extended tokenizer; resize the embedding matrix from 32,000 to 32,057 rows and initialise the new rows (mean of old pieces).</li>
+  <li>Tokenize the 230,846 training sentences (max length 128 tokens).</li>
+  <li>Measure <b>perplexity before</b> training on 1,000 held-out sentences, using a fixed random seed for the masking so that the before/after comparison uses identical masks.</li>
+  <li>Train with the Hugging Face <b>Trainer</b>: 15% dynamic masking, batch size 32, learning rate 5×10<sup>-5</sup>, 6% warm-up, weight decay 0.01, <b>800 steps</b> (≈ 25,600 sentences).</li>
+  <li>Measure <b>perplexity after</b> training, save the adapted encoder to <code>artifacts/mlm_dapt</code>.</li>
+</ol>
+<div class="key"><b>Result:</b> held-out perplexity <b>12.40 → 9.85</b> (−21%), final training loss 2.47, training time 51 minutes on CPU. The encoder has adapted to normalized spelling and news vocabulary.<br><span class="small">A first attempt with 1,500 steps ran at ≈ 4 s/step (≈ 1 h 45 min); we reduced it to 800 steps to fit the CPU budget.</span></div>
+
+<h2>8.2 NER fine-tuning: model, label alignment and training</h2>
+<p>Code: <code>src/amner/data.py</code>, <code>src/amner/train_ner.py</code>.</p>
+<p><b>Model.</b> <code>AutoModelForTokenClassification</code> = encoder + dropout + a linear layer producing 9 scores (one per BIO label) for each subword.</p>
+<p><b>Label alignment.</b> The tokenizer splits words into subwords, but labels exist per word. We give the label to the <b>first subword</b> of each word and the special value <code>-100</code> (ignored by the loss) to the remaining subwords and to special tokens:</p>
+<table class="avoid">
+  <tr><th>Words</th><td class="am" colspan="2">በአወዳይ</td><td class="am">ከተማ</td></tr>
+  <tr><th>Subwords</th><td class="am">▁በአወ</td><td class="am">ዳይ</td><td class="am">▁ከተማ</td></tr>
+  <tr><th>Training labels</th><td>I-LOC</td><td>-100 (ignored)</td><td>I-LOC</td></tr>
+</table>
+<p>At prediction time, the label of each word is read from its first subword.</p>
+<p><b>Training settings.</b> AdamW, learning rate 5×10<sup>-5</sup> (full fine-tuning) or 5×10<sup>-4</sup> (LoRA — adapters need larger steps), batch 16, max length 192, 10% warm-up, weight decay 0.01, up to 10 epochs, evaluation on the validation set after every epoch with entity-level F1, <b>early stopping</b> with patience 3, and the best checkpoint restored at the end. Random seed 42 everywhere.</p>
+<p>The baseline's validation F1 per epoch was 0.645 → 0.715 → 0.729 → <b>0.782</b> → 0.761 → 0.757 → 0.759; early stopping ended training after epoch 7 and restored epoch 4.</p>
+
+<h2>8.3 Parameter-efficient fine-tuning with LoRA</h2>
+<p>With <code>--mode lora</code> the PEFT library wraps the model with LoRA adapters: rank r = 16, α = 32, dropout 0.1, applied to the attention <i>query</i>, <i>key</i>, <i>value</i> and the <i>dense</i> projection layers; the classification head is trained fully. Only <b>1,184,265 of 41.9 M parameters (2.83%)</b> are trainable. After training the adapters are <b>merged</b> into the base weights, so every run produces an identical directory format that the evaluation, spaCy and API code can load.</p>
+
+<h2>8.4 Morphology-aware data augmentation</h2>
+<p>With <code>--morph-augment</code>, each training sentence that contains a non-DATE entity gets one extra <i>re-inflected</i> copy. For each entity, with probability 0.5 its first token receives a different prefix (chosen from <span class="am">በ-, ለ-, የ-, ከ-, ወደ-</span> or none) and with probability 0.3 its last token a different suffix (<span class="am">-ን, -ም, -ው</span> or none). Non-entity tokens and all labels are unchanged — valid because MasakhaNER labels the whole token including clitics.</p>
+<table class="avoid">
+  <tr><th>Original</th><td class="am">ኢትዮጵያ እና ኬንያ ተስማሙ</td><td>B-LOC O B-LOC O</td></tr>
+  <tr><th>Augmented</th><td class="am">በኢትዮጵያ እና የኬንያ ተስማሙ</td><td>B-LOC O B-LOC O</td></tr>
+</table>
+<p>This added 764 sentences (1,750 → 2,514). The goal is to teach the model that the identity of an entity does not depend on its clitic, i.e. to improve recall on <i>new inflections of known names</i>.</p>
+
+<h2>8.5 The five experimental runs</h2>
+<table>
+  <tr><th>Run</th><th>Starting encoder</th><th>Method</th><th class="n">Trainable params</th><th class="n">Train sentences</th><th class="n">Epochs</th><th class="n">CPU time</th></tr>
+  <tr><td>base_full</td><td>original backbone</td><td>full fine-tuning (baseline)</td><td class="n">41.9 M (100%)</td><td class="n">1,750</td><td class="n">7</td><td class="n">11.6 min</td></tr>
+  <tr><td>base_full_morph</td><td>original backbone</td><td>full FT + augmentation</td><td class="n">41.9 M (100%)</td><td class="n">2,514</td><td class="n">8</td><td class="n">15.8 min</td></tr>
+  <tr><td>dapt_full</td><td>MLM-adapted</td><td>full fine-tuning</td><td class="n">41.9 M (100%)</td><td class="n">1,750</td><td class="n">7</td><td class="n">9.1 min</td></tr>
+  <tr><td>dapt_lora</td><td>MLM-adapted</td><td>LoRA r = 16</td><td class="n">1.18 M (2.83%)</td><td class="n">1,750</td><td class="n">8</td><td class="n">7.3 min</td></tr>
+  <tr><td>dapt_full_morph</td><td>MLM-adapted</td><td>full FT + augmentation</td><td class="n">41.9 M (100%)</td><td class="n">2,514</td><td class="n">9</td><td class="n">17.2 min</td></tr>
+</table>
+<p><b>Model selection.</b> <code>python -m amner.select_best</code> chooses the run with the highest <b>validation</b> F1 — never the test F1 — and copies it to <code>artifacts/ner/best</code>. The winner was <b>dapt_full</b> (validation F1 0.789).</p>
+
+<!-- ============================ 9 ============================ -->
+<h1>9. Stage 5 — Evaluation and error analysis</h1>
+<p>Code: <code>src/amner/evaluate.py</code>, <code>significance.py</code>, <code>summarize.py</code>. All numbers below are on the MasakhaNER Amharic <b>test set</b> (500 sentences, 558 gold entities) unless stated otherwise.</p>
+
+<h2>9.1 Main results</h2>
+<table>
+  <tr><th>Run</th><th class="n">Val F1</th><th class="n">Test P</th><th class="n">Test R</th><th class="n">Test F1 [95% CI]</th><th class="n">Strict F1</th><th class="n">F1, un-normalized input</th></tr>
+  <tr><td>base_full</td><td class="n">0.782</td><td class="n">0.746</td><td class="n">0.774</td><td class="n"><b>0.760</b> [0.724, 0.794]</td><td class="n">0.771</td><td class="n">0.757</td></tr>
+  <tr><td>base_full_morph</td><td class="n">0.773</td><td class="n">0.701</td><td class="n">0.776</td><td class="n">0.736 [0.698, 0.772]</td><td class="n">0.748</td><td class="n">0.727</td></tr>
+  <tr><td><b>dapt_full ★ (deployed)</b></td><td class="n"><b>0.789</b></td><td class="n">0.733</td><td class="n"><b>0.790</b></td><td class="n"><b>0.760</b> [0.721, 0.795]</td><td class="n"><b>0.776</b></td><td class="n">0.757</td></tr>
+  <tr><td>dapt_lora</td><td class="n">0.787</td><td class="n">0.708</td><td class="n">0.755</td><td class="n">0.730 [0.692, 0.765]</td><td class="n">0.748</td><td class="n">0.721</td></tr>
+  <tr><td>dapt_full_morph</td><td class="n">0.785</td><td class="n">0.728</td><td class="n">0.753</td><td class="n">0.740 [0.703, 0.772]</td><td class="n">0.750</td><td class="n">0.737</td></tr>
+</table>
+<table>
+  <caption>Per-type scores of the deployed model (dapt_full)</caption>
+  <tr><th>Type</th><th class="n">Precision</th><th class="n">Recall</th><th class="n">F1</th><th class="n">Gold entities</th></tr>
+  <tr><td><span class="pill PER">PER</span></td><td class="n">0.784</td><td class="n">0.894</td><td class="n">0.836</td><td class="n">142</td></tr>
+  <tr><td><span class="pill LOC">LOC</span></td><td class="n">0.783</td><td class="n">0.828</td><td class="n">0.805</td><td class="n">227</td></tr>
+  <tr><td><span class="pill DATE">DATE</span></td><td class="n">0.675</td><td class="n">0.726</td><td class="n">0.700</td><td class="n">106</td></tr>
+  <tr><td><span class="pill ORG">ORG</span></td><td class="n">0.570</td><td class="n">0.590</td><td class="n">0.580</td><td class="n">83</td></tr>
+  <tr><td><b>Micro average</b></td><td class="n">0.733</td><td class="n">0.790</td><td class="n"><b>0.760</b></td><td class="n">558</td></tr>
+  <tr><td>Macro average</td><td class="n">0.703</td><td class="n">0.760</td><td class="n">0.730</td><td class="n"></td></tr>
+</table>
+<p>ORG is clearly the hardest type in every run (F1 0.50–0.58): it is the rarest in training and organization names are long, multi-word and often contain clitics internally (<span class="am">የኢትዮጵያ ሰብአዊ መብቶች ኮሚሽን</span>). These scores are in the range reported for models of this size on MasakhaNER Amharic.</p>
+
+<h2>9.2 Statistical significance and interpretation</h2>
+<table>
+  <caption>Paired bootstrap (2,000 resamples) — difference to the baseline</caption>
+  <tr><th>Run vs base_full</th><th class="n">Δ F1</th><th>95% CI of Δ</th><th class="n">P(better)</th><th>Verdict</th></tr>
+  <tr><td>dapt_full</td><td class="n">+0.0005</td><td>[−0.021, +0.020]</td><td class="n">0.53</td><td>no measurable difference</td></tr>
+  <tr><td>dapt_lora</td><td class="n">−0.0296</td><td>[−0.056, −0.005]</td><td class="n">0.01</td><td><b>significantly worse</b></td></tr>
+  <tr><td>dapt_full_morph</td><td class="n">−0.0198</td><td>[−0.044, +0.003]</td><td class="n">0.04</td><td>worse (borderline)</td></tr>
+  <tr><td>base_full_morph</td><td class="n">−0.0235</td><td>[−0.048, +0.000]</td><td class="n">0.03</td><td>worse (borderline)</td></tr>
+</table>
+<ul>
+  <li><b>MLM adaptation</b> clearly improved the language model (perplexity −21%) but did not change overall NER F1. It shifted the balance towards recall (0.774 → 0.790) and, importantly, improved the morphologically hard cases (Section 9.3). Likely reasons for the small effect: the backbone was already pre-trained on Amharic news, and 800 CPU steps is a small adaptation budget.</li>
+  <li><b>LoRA</b> reached almost the same <i>validation</i> F1 as full fine-tuning (0.787 vs 0.789) while training 2.8% of the weights and finishing fastest, but generalised worse to the test set. With only 1,750 sentences and a 42 M-parameter model, full fine-tuning is affordable and better; LoRA's advantages (a ≈ 5 MB adapter instead of a 168 MB model, low memory) matter more for larger models or many tasks.</li>
+  <li><b>Normalization at inference</b> improves every model slightly and consistently (e.g. 0.757 → 0.760). The effect is small because MasakhaNER's test set mostly uses standard spelling; on noisier text (Telegram, user input) it matters more.</li>
+</ul>
+
+<h2>9.3 Morphological error analysis</h2>
+<p>Each gold entity is assigned to buckets and recall is computed per bucket:</p>
+<ul>
+  <li><b>Affix bucket</b>: does the entity carry a prefix clitic (first token), a suffix clitic (last token), both or none?</li>
+  <li><b>Novelty bucket</b>: <i>seen surface</i> — the exact form occurs as an entity in training; <i>unseen surface, seen stem</i> — the form is new but its clitic-free lemma was seen (a new inflection of a known name, e.g. <span class="am">ለኢትዮጵያ</span> when only <span class="am">ኢትዮጵያ</span> was in training); <i>unseen</i> — completely new.</li>
+</ul>
+<table>
+  <tr><th>Bucket</th><th class="n">n</th><th class="n">base_full</th><th class="n">base_full_morph</th><th class="n">dapt_full</th><th class="n">dapt_lora</th><th class="n">dapt_full_morph</th></tr>
+  <tr><td>affix: bare</td><td class="n">315</td><td class="n">0.778</td><td class="n">0.787</td><td class="n">0.787</td><td class="n">0.775</td><td class="n">0.765</td></tr>
+  <tr><td>affix: <b>prefix</b></td><td class="n">210</td><td class="n">0.767</td><td class="n">0.757</td><td class="n"><b>0.795</b></td><td class="n">0.733</td><td class="n">0.733</td></tr>
+  <tr><td>affix: suffix</td><td class="n">25</td><td class="n">0.800</td><td class="n">0.800</td><td class="n">0.800</td><td class="n">0.720</td><td class="n">0.760</td></tr>
+  <tr><td>affix: prefix+suffix</td><td class="n">8</td><td class="n">0.750</td><td class="n">0.750</td><td class="n">0.750</td><td class="n">0.625</td><td class="n">0.750</td></tr>
+  <tr><td>novelty: seen surface</td><td class="n">160</td><td class="n">0.894</td><td class="n">0.887</td><td class="n">0.906</td><td class="n">0.844</td><td class="n">0.869</td></tr>
+  <tr><td>novelty: <b>unseen surface, seen stem</b></td><td class="n">35</td><td class="n">0.714</td><td class="n"><b>0.771</b></td><td class="n"><b>0.771</b></td><td class="n"><b>0.829</b></td><td class="n">0.686</td></tr>
+  <tr><td>novelty: unseen</td><td class="n">363</td><td class="n">0.727</td><td class="n">0.727</td><td class="n">0.741</td><td class="n">0.708</td><td class="n">0.708</td></tr>
+</table>
+<figure><img src="../../reports/figures/ner_comparison.png"><figcaption>Figure 2 — Test F1 per run (left) and entity recall per morphological/lexical bucket (right).</figcaption></figure>
+
+<h3>Findings</h3>
+<ol>
+  <li><b>The morphological gap is real.</b> The baseline finds 89% of entities whose exact form was seen in training, but only 71% of <i>new inflections of known names</i> — no better than completely unseen names (73%). The model does not automatically transfer <span class="am">ኢትዮጵያ</span> to <span class="am">ለኢትዮጵያ</span>.</li>
+  <li><b>Prefixed entities are the main failure group.</b> Most of the baseline's missed entities carry a proclitic, especially the genitive <span class="am">የ-</span>, which turns a name into a modifier: <span class="am">የህወሀት</span> (of TPLF), <span class="am">በንጃሜና</span> (in N'Djamena), <span class="am">የአፕል</span> (of Apple), <span class="am">የፌስቡክ</span> (of Facebook), <span class="am">የኢሬቻ በአል</span> (the Irreecha festival, a DATE).</li>
+  <li><b>MLM adaptation closes most of the prefix gap:</b> recall on prefixed entities 0.767 → 0.795 (now equal to bare entities) and on new inflections 0.714 → 0.771.</li>
+  <li><b>Augmentation works as designed but costs precision.</b> On the original backbone it raises recall on new inflections (0.714 → 0.771), raises PER F1 (0.829 → 0.857) and cuts missed entities from 48 to 36, but spurious predictions rise from 60 to 84 (precision 0.746 → 0.701). Inspecting the “spurious” list showed that <b>many are real entities left unlabelled in the gold data</b>: <span class="am">ትዊተር</span> (Twitter), <span class="am">ዋትስአፕ</span> (WhatsApp), <span class="am">ስካይፕ</span> (Skype), <span class="am">ከፌደራል ማረሚያ ቤቶች ኮሚሽን</span> (Federal Prisons Commission). Part of the measured precision loss is therefore annotation inconsistency. Augmentation also created some unnatural forms (e.g. <span class="am">ወደ-</span> “towards” before a person name), which a next version should restrict by entity type.</li>
+  <li>The “new inflection” bucket contains only 35 entities, so differences there are indicative, not conclusive.</li>
+</ol>
+
+<h3>Error taxonomy</h3>
+<table>
+  <tr><th>Error type</th><th>Definition</th><th class="n">base_full</th><th class="n">base_full_morph</th><th class="n">dapt_full</th></tr>
+  <tr><td>missed</td><td>gold entity with no overlapping prediction</td><td class="n">48</td><td class="n">36</td><td class="n">39</td></tr>
+  <tr><td>spurious</td><td>prediction with no overlapping gold entity</td><td class="n">60</td><td class="n">84</td><td class="n">69</td></tr>
+  <tr><td>boundary</td><td>overlapping, same type, wrong start/end</td><td class="n">47</td><td class="n">51</td><td class="n">48</td></tr>
+  <tr><td>boundary+type</td><td>overlapping, wrong boundaries and type</td><td class="n">20</td><td class="n">25</td><td class="n">18</td></tr>
+  <tr><td>type confusion</td><td>exact span, wrong type</td><td class="n">11</td><td class="n">13</td><td class="n">12</td></tr>
+</table>
+<p>The most frequent type confusions are LOC → PER and LOC/ORG swaps (e.g. a region name used to mean its government). Boundary errors mostly concern long ORG and DATE expressions (<span class="am">ጥቅምት 12 ቀን 2016</span>). Full lists with sentences are in <code>reports/eval/error_analysis_&lt;run&gt;.md</code>.</p>
+
+<!-- ============================ 10 ============================ -->
+<h1>10. Political relation extraction</h1>
+<p>Code: <code>src/amner/relations.py</code> (rules), <code>src/amner/evaluate_re.py</code> (evaluation), <code>eval/re_gold.jsonl</code> (gold set). There is no public Amharic relation-extraction corpus, so relations are extracted with linguistically motivated rules on top of the NER output. The arguments of every relation are reported as <b>clitic-free lemmas</b> from the morphology module.</p>
+
+<h2>10.1 Relation inventory</h2>
+<table>
+  <tr><th>Relation</th><th>Head → Tail</th><th>Meaning</th><th>Example (Amharic → triple)</th></tr>
+  <tr><td>LEADER_OF</td><td>PER → ORG/LOC</td><td>head of state, government, party, agency</td><td class="am">የኢትዮጵያ ጠቅላይ ሚኒስትር አቢይ አህመድ → (አቢይ አህመድ, LEADER_OF, ኢትዮጵያ)</td></tr>
+  <tr><td>HOLDS_TITLE</td><td>PER → title</td><td>office held (attribute)</td><td class="am">(አቢይ አህመድ, HOLDS_TITLE, ጠቅላይ ሚኒስትር)</td></tr>
+  <tr><td>SPOKESPERSON_OF</td><td>PER → ORG/LOC</td><td>official spokesperson</td><td class="am">የኢትዮጵያ መንግሥት ቃል አቀባይ …</td></tr>
+  <tr><td>MEMBER_OF</td><td>PER → ORG</td><td>member, representative, ambassador</td><td class="am">… አባል / ተወካይ / አምባሳደር</td></tr>
+  <tr><td>MET_WITH</td><td>actor ↔ actor</td><td>meeting / discussion (symmetric)</td><td class="am">X ከY ጋር ተወያዩ</td></tr>
+  <tr><td>AGREEMENT_WITH</td><td>actor ↔ actor</td><td>signed / agreed (symmetric)</td><td class="am">X እና Y ስምምነት ተፈራረሙ</td></tr>
+  <tr><td>CONFLICT_WITH</td><td>actor ↔ actor</td><td>war / clash (symmetric)</td><td class="am">በX እና በY መካከል ጦርነት</td></tr>
+  <tr><td>LOCATED_IN</td><td>ORG → LOC</td><td>organisation is located in a place</td><td class="am">X በአዲስ አበባ በሚገኘው …</td></tr>
+  <tr><td>EVENT_DATE</td><td>PER/ORG → DATE</td><td>statement/event anchored to a date</td><td class="am">X ጥቅምት 12 ቀን … መግለጫ ሰጥተዋል</td></tr>
+</table>
+
+<h2>10.2 The rules</h2>
+<ol>
+  <li><b>Title apposition.</b> In Amharic news the office title stands between the polity and the person: <span class="am">የ&lt;ORG/LOC&gt; &lt;TITLE&gt; &lt;PER&gt;</span>. A lexicon of 25 titles (<span class="am">ጠቅላይ ሚኒስትር, ፕሬዚዳንት, ሊቀመንበር, ርዕሰ መስተዳድር, ከንቲባ, ዋና ጸሐፊ, ዋና ዳይሬክተር, ገዥ, ቃል አቀባይ, አምባሳደር …</span>) is matched right before a person (allowing up to 2 intervening tokens such as <span class="am">ዶ/ር</span>); the title may itself carry clitics (<span class="am">የጠቅላይ, ሊቀመንበሩ</span>). If an ORG/LOC ends directly before the title, the relation type stored with the title is emitted; HOLDS_TITLE is always emitted.</li>
+  <li><b>Verb-final clauses.</b> Amharic is SOV, so MET_WITH / AGREEMENT_WITH / CONFLICT_WITH require a <b>trigger after the second entity</b> (meeting: <span class="am">ተወያ…, ውይይት, ተገናኙ, ተነጋገ…</span>; agreement: <span class="am">ተፈራረ…, ፈረሙ, ተስማሙ, ደረሱ</span>; conflict: <span class="am">ጦርነት, ግጭት, ውጊያ, ጥቃት, ወረራ</span>) and require the second entity to be <b>marked as a participant</b>: the comitative prefix <span class="am">ከ-</span> or the postposition <span class="am">ጋር</span> (“with”) right after it, coordination with <span class="am">እና</span> (“and”), or the frame <span class="am">በX እና በY መካከል</span> (“between X and Y”).</li>
+  <li><b>Clitics carry roles.</b> An entity with the locative prefix <span class="am">በ-</span> (“in/at”) is a <b>venue</b>, not a participant (except in the <span class="am">መካከል</span> frame). A LOC/ORG within 3 tokens before a person is treated as that person's <b>modifier</b> (<span class="am">ከሩሲያው አቻቸው ቭላድሚር ፑቲን ጋር</span> — the participant is Putin, not Russia). A polity already used by a title rule is not reused as a participant.</li>
+  <li><b>Agreement needs a verb.</b> The noun <span class="am">ስምምነት</span> (“agreement”) alone is not enough: in <span class="am">የሰላም ስምምነቱን አፈጻጸም በተመለከተ ተወያዩ</span> (“discussed the implementation of the peace agreement”) the event is a meeting.</li>
+  <li><b>Fused-suffix trigger matching.</b> Because suffixes fuse with the final syllable (<span class="am">ጦርነት + -u = ጦርነቱ</span>), a trigger also matches if all its characters but the last match and the last character belongs to the <b>same consonant family</b> (same Unicode block of 8: <span class="am">ት</span> U+1275 and <span class="am">ቱ</span> U+1271 are both family 14). This is a direct use of root-and-pattern structure.</li>
+  <li><b>LOCATED_IN</b> via the triggers <span class="am">ውስጥ, የሚገኘው/በሚገኘው</span>, or the pattern <span class="am">የ&lt;LOC&gt;</span> directly followed by an ORG. <b>EVENT_DATE</b>: each DATE is linked to the nearest preceding PER/ORG in the sentence if a statement/event verb follows (<span class="am">አስታወቀ, ገለጸ, ሰጥተዋል, ተካሄደ, አጽድቋል …</span>).</li>
+</ol>
+
+<h2>10.3 Evaluation</h2>
+<p>We wrote a <b>diagnostic set of 25 news-style sentences</b> with 55 gold relations covering every relation type, including negative sentences (no relation) and deliberately hard cases (Appendix C). Triples are compared after Fidel normalization; symmetric relations are order-insensitive.</p>
+<table>
+  <tr><th>Setting</th><th class="n">Precision</th><th class="n">Recall</th><th class="n">F1</th></tr>
+  <tr><td>Gold entities, <b>greedy</b> clitic analyser (ablation)</td><td class="n">0.833</td><td class="n">0.818</td><td class="n">0.826</td></tr>
+  <tr><td>Gold entities, lexicon analyser with the first (strict) threshold</td><td class="n">0.759</td><td class="n">0.746</td><td class="n">0.752</td></tr>
+  <tr><td>Gold entities, <b>final lexicon analyser</b></td><td class="n"><b>0.982</b></td><td class="n"><b>0.964</b></td><td class="n"><b>0.973</b></td></tr>
+  <tr><td>End-to-end (entities predicted by dapt_full)</td><td class="n">0.808</td><td class="n">0.691</td><td class="n">0.745</td></tr>
+</table>
+<ul>
+  <li>The only difference between the first three rows is the clitic analyser: wrong stripping produces wrong argument names (<span class="am">ሱዳ, ፑቲ, ገሰ ቱሉ, የኢትዮጵያ</span>) and therefore wrong triples. <b>Morphology directly determines relation quality.</b></li>
+  <li>With gold entities, the remaining errors are a title separated from its polity by an extra phrase (<span class="am">የአሜሪካ የውጭ ጉዳይ ሚኒስትር</span> → MEMBER_OF missed) and <span class="am">የተባበሩት</span> (in “United Nations”), whose prefix is not stripped because <span class="am">ተባበሩት</span> almost never occurs alone.</li>
+  <li>End-to-end, recall drops because NER mistakes remove relations: e.g. the NER model split <span class="am">ቴድሮስ አድሀኖም ገብረኢየሱስ</span> into two persons, and predicted <span class="am">ብልጽግና</span> without <span class="am">ፓርቲ</span>. Precision stays above 0.8.</li>
+</ul>
+<div class="note"><b>Honest caveat.</b> The rules were refined while looking at this set, so it acts as a <i>development</i> set and the gold-entity score is optimistic. The end-to-end score is more realistic. A separate held-out set annotated by native speakers would be needed for an unbiased estimate.</div>
+
+<!-- ============================ 11 ============================ -->
+<h1>11. Inference optimization</h1>
+<p>Code: <code>src/amner/optimize.py</code>. For a web application the important quantities are latency and memory. We applied PyTorch <b>dynamic INT8 quantization</b> (<code>torch.quantization.quantize_dynamic</code>) to all linear layers of the deployed model and benchmarked it on 4 CPU threads: latency for one sentence at a time (the interactive case, averaged over 200 sentences after warm-up), throughput with batches of 32, model size and test F1.</p>
+<table>
+  <tr><th>Variant</th><th class="n">Size</th><th class="n">Latency / sentence (batch 1)</th><th class="n">Throughput (batch 32)</th><th class="n">Test F1</th></tr>
+  <tr><td>FP32 (original)</td><td class="n">167.7 MB</td><td class="n">21.4 ms</td><td class="n">90 sentences/s</td><td class="n">0.7603</td></tr>
+  <tr><td><b>INT8 dynamic</b></td><td class="n"><b>92.2 MB</b></td><td class="n"><b>9.1 ms</b></td><td class="n"><b>204 sentences/s</b></td><td class="n">0.7517</td></tr>
+</table>
+<div class="key"><b>2.35× faster, 1.82× smaller, −0.009 F1.</b> This is a good trade-off for an interactive application, so the API and UI serve the INT8 model by default.</div>
+
+<!-- ============================ 12 ============================ -->
+<h1>12. Stage 7 — System deployment</h1>
+
+<h2>12.1 spaCy custom pipeline</h2>
+<p>Code: <code>src/amner/spacy_pipeline.py</code>. The pipeline is built on <code>spacy.blank("am")</code> (spaCy's Amharic language data) and replaces/extends it as follows:</p>
+<table>
+  <tr><th>Component</th><th>What it does</th><th>Output</th></tr>
+  <tr><td><code>AmharicTokenizer</code></td><td>Runs the full normalizer, then splits words and Ethiopic punctuation. A spaCy Doc's text cannot be changed later, so normalization must happen in the tokenizer.</td><td><code>doc.text</code> = normalized text; <code>doc.user_data["raw"]</code> = original</td></tr>
+  <tr><td><code>amharic_morphology</code></td><td>Lexicon clitic analysis of every token</td><td><code>token._.prefix</code>, <code>._.stem</code>, <code>._.suffix</code></td></tr>
+  <tr><td><code>amharic_ner</code></td><td>Runs the transformer (optionally INT8), decodes BIO labels into spans</td><td><code>doc.ents</code>, <code>span._.lemma_am</code>, <code>span._.score</code></td></tr>
+  <tr><td><code>amharic_relations</code></td><td>Applies the relation rules to the entities</td><td><code>doc._.relations</code></td></tr>
+</table>
+<pre>from amner.spacy_pipeline import build_pipeline
+nlp = build_pipeline("artifacts/ner/best")
+doc = nlp("ኢትዮጵያ እና ሱዳን በድንበር ጉዳይ ላይ ስምምነት ተፈራረሙ።")
+[(e.text, e.label_, e._.lemma_am) for e in doc.ents]   # [('ኢትዮጵያ','LOC','ኢትዮጵያ'), ('ሱዳን','LOC','ሱዳን')]
+doc._.relations                                         # [{'head':'ኢትዮጵያ','relation':'AGREEMENT_WITH','tail':'ሱዳን',...}]</pre>
+<p class="small">Technical note: this module must not use <code>from __future__ import annotations</code>; spaCy validates component factory signatures at run time with pydantic and fails on string annotations (“field 'nlp' not yet prepared”).</p>
+
+<h2>12.2 FastAPI backend</h2>
+<p>Code: <code>api/main.py</code>. Start with <code>uvicorn api.main:app --port 8000</code>; interactive documentation is generated automatically at <code>/docs</code>. The model is loaded once at start-up (INT8).</p>
+<table>
+  <tr><th>Endpoint</th><th>Method</th><th>Input</th><th>Output</th></tr>
+  <tr><td><code>/health</code></td><td>GET</td><td>–</td><td>status and loaded model</td></tr>
+  <tr><td><code>/analyze</code></td><td>POST</td><td><code>{"text": "…"}</code> (1–5,000 characters)</td><td>normalized text, entities, relations, per-token morphology, latency</td></tr>
+  <tr><td><code>/analyze/batch</code></td><td>POST</td><td><code>{"texts": [...]}</code> (up to 64)</td><td>list of the above</td></tr>
+  <tr><td><code>/normalize</code></td><td>POST</td><td><code>{"text": "…"}</code></td><td>raw vs normalized text, every re-spelled character, removed noise, Latin words</td></tr>
+  <tr><td><code>/tokenize</code></td><td>POST</td><td><code>{"text": "…"}</code></td><td>subword splits from five tokenizers + clitic segmentation of each word</td></tr>
+</table>
+<p>A real response (abbreviated) for two sentences:</p>
+<pre>normalized: የአፍሪካ ህብረት ኮሚሽን ሊቀመንበር ሙሳ ፋኪ መሀማት ጥቅምት 12 ቀን በአዲስ አበባ መግለጫ ሰጥተዋል ። ኢትዮጵያ እና ሱዳን … ተፈራረሙ ።
+latency ms: 16.3
+ENT  የአፍሪካ ህብረት ኮሚሽን  ORG   → lemma አፍሪካ ህብረት ኮሚሽን   (0.99)
+ENT  ሙሳ ፋኪ መሀማት        PER   → ሙሳ ፋኪ መሀማት          (1.00)
+ENT  ጥቅምት 12 ቀን         DATE  → ጥቅምት 12 ቀን           (0.95)
+ENT  በአዲስ አበባ          LOC   → አዲስ አበባ              (0.83)
+ENT  ኢትዮጵያ / ሱዳን       LOC
+REL  ሙሳ ፋኪ መሀማት  HOLDS_TITLE     ሊቀመንበር
+REL  ሙሳ ፋኪ መሀማት  LEADER_OF       አፍሪካ ህብረት ኮሚሽን
+REL  ሙሳ ፋኪ መሀማት  EVENT_DATE      ጥቅምት 12 ቀን
+REL  ኢትዮጵያ        AGREEMENT_WITH  ሱዳን</pre>
+
+<h2>12.3 Gradio web interface</h2>
+<p>Code: <code>app/gradio_app.py</code>. Start with <code>AMNER_API_URL=http://127.0.0.1:8000 python app/gradio_app.py</code> and open <code>http://127.0.0.1:7860</code>. When <code>AMNER_API_URL</code> is set, the UI is a thin client of the FastAPI backend (UI → API → spaCy → model); otherwise it runs the pipeline in-process (the mode used on Hugging Face Spaces). The interface shows the input text with colour-highlighted entities, the normalized text and latency, and three result tabs: <b>Entities</b> (surface form, type, clitic-free lemma, confidence), <b>Relations</b> (head, relation, tail, trigger) and <b>Morphology</b> (prefix, stem, suffix and BIO tag of every token). Five example sentences can be loaded with one click. Two further tabs show what happens <i>inside</i> the pipeline (Section 12.4).</p>
+<figure><img src="../ui_demo.png" style="max-height:150mm"><figcaption>Figure 3 — The running Gradio interface connected to the FastAPI backend (screenshot taken from the live system).</figcaption></figure>
+
+<h2>12.4 Explainability tabs: Normalization and Tokenizer</h2>
+<p>Code: <code>src/amner/explain.py</code>, exposed as <code>POST /normalize</code> and <code>POST /tokenize</code> and as two tabs in the UI. They were added so that the two pre-processing stages, which are normally invisible, can be demonstrated live.</p>
+<p><b>Normalization tab.</b> The raw input is shown with every character that the normalizer re-spells highlighted together with its rule (<span class="am">ሕ→ህ, ዐ→አ, ዓ→አ, ፀ→ጸ</span>, the old word separator <span class="am">፡</span>), and with removed noise (URLs, @mentions, emojis) marked “removed”. Next to it are the cleaned text, a table counting each change, and a summary (characters re-spelled, noise removed, Latin-script words kept, raw words vs normalized tokens).</p>
+<figure><img src="../ui_normalization.png" style="max-height:120mm"><figcaption>Figure 4 — Normalization tab: changed characters and removed noise are highlighted in the raw input.</figcaption></figure>
+<p><b>Tokenizer tab.</b> For any word or phrase it shows the subword pieces produced by the five tokenizers of Section 7 (backbone, backbone + 57 added words, custom BPE, custom WordPiece and XLM-R), the number of pieces and pieces per word, next to the clitic segmentation from the morphology module. The example in Figure 5 summarizes the tokenization findings in one screen: every frequency-based tokenizer keeps <span class="am">ለኢትዮጵያ</span> as one unit (so the clitic <span class="am">ለ-</span> is never separated), XLM-R splits <span class="am">ከኬንያው</span> into four meaningless pieces, while the analyser returns <span class="am">ለ + ኢትዮጵያ + ንም</span> and <span class="am">ከ + ኬንያ + ው</span>. The fused form <span class="am">ጦርነቱ</span> is left whole by everyone — the limitation discussed in Section 15.</p>
+<figure><img src="../ui_tokenizer.png" style="max-height:120mm"><figcaption>Figure 5 — Tokenizer tab: subword splits of five tokenizers next to the clitic analysis.</figcaption></figure>
+
+<h2>12.5 Training curves in TensorBoard</h2>
+<div class="def"><b class="term">TensorBoard</b> — a web dashboard (from the TensorFlow project, usable with PyTorch) that plots training metrics such as loss, learning rate and validation F1 against the training step, so training runs can be monitored and compared.</div>
+<p>Both training scripts now pass <code>report_to=["tensorboard"]</code> to the Trainer (whenever the <code>tensorboard</code> package is installed) and write to <code>runs/&lt;run name&gt;</code>. The five NER runs and the MLM run had already been trained before this was enabled, so instead of retraining we wrote <code>python -m amner.tb_export</code>: it parses the metric dictionaries that the Trainer printed to the training logs (<code>{'loss': …, 'learning_rate': …, 'epoch': …}</code> and the per-epoch <code>eval_precision/recall/f1</code>), converts epochs to global steps and writes standard TensorBoard event files. The files (72 KB in total) are committed, so <code>tensorboard --logdir runs</code> shows the curves on any machine. For example, the validation F1 of <code>dapt_full</code> per epoch is 0.654, 0.732, 0.729, <b>0.789</b>, 0.758, 0.783, 0.769 — early stopping restored epoch 4.</p>
+<figure><img src="../tensorboard.png" style="max-height:120mm"><figcaption>Figure 6 — TensorBoard: validation F1, loss, precision and recall of all runs.</figcaption></figure>
+
+<h2>12.6 Launching and rehearsing the demo</h2>
+<p><code>bash scripts/launch_demo.sh --tb</code> starts the FastAPI backend, waits until <code>/health</code> answers, starts the Gradio UI connected to it, optionally TensorBoard, opens the browser and stops everything on Ctrl+C. <code>python scripts/rehearse_demo.py</code> then checks the running system the way a presentation would use it:</p>
+<table>
+  <tr><th>Check</th><th>Result</th><th class="n">Time</th></tr>
+  <tr><td>API /health</td><td>PASS — model artifacts/ner/best loaded</td><td class="n">4 ms</td></tr>
+  <tr><td>API /analyze (NER + relations)</td><td>PASS — 5 entities, 5 relations, MET_WITH(Abiy, Ruto) found</td><td class="n">396 ms</td></tr>
+  <tr><td>API /normalize</td><td>PASS — <span class="am">ዐቢይ አሕመድ ሥራ ፀሐይ → አቢይ አህመድ ስራ ጸሀይ</span></td><td class="n">4 ms</td></tr>
+  <tr><td>API /tokenize</td><td>PASS — 5 tokenizers; <span class="am">ለ + ኢትዮጵያ + ንም</span></td><td class="n">1,137 ms (first call loads tokenizers)</td></tr>
+  <tr><td>UI connect / Entities &amp; Relations / Normalization / Tokenizer tabs</td><td>PASS ×4</td><td class="n">56–380 ms</td></tr>
+  <tr><td colspan="2"><b>Total</b></td><td class="n"><b>8 / 8 passed</b></td></tr>
+</table>
+
+<h2>12.7 Hugging Face Spaces</h2>
+<p><code>scripts/deploy_space.py</code> (after <code>huggingface-cli login</code> with a write token) uploads the selected model to a Hub model repository and creates a Gradio Space containing <code>app.py</code>, the <code>amner</code> package, the custom tokenizer files (for the Tokenizer tab) and a minimal <code>requirements.txt</code>; at start-up the Space downloads the model from the Hub. The group chose to perform this deployment later (it requires a Hugging Face write token); everything needed is ready, and the local launch has been rehearsed (Section 12.6).</p>
+
+<!-- ============================ 13 ============================ -->
+<h1>13. Problems encountered and how they were solved</h1>
+<table class="long">
+  <tr><th style="width:28%">Problem</th><th>Cause and solution</th></tr>
+  <tr><td>EthioNLP/AmBERTa not downloadable</td><td>The checkpoint is not public (HTTP 401). Used the public Amharic RoBERTa <code>rasyosef/roberta-medium-amharic</code>; all scripts accept any model name.</td></tr>
+  <tr><td>MasakhaNER would not load</td><td>Its repository uses a legacy loading script that modern <code>datasets</code> refuses to run. Read the Hub's auto-converted Parquet files instead.</td></tr>
+  <tr><td>Very slow package installation</td><td>PyPI downloads ran at ≈ 30 KB/s on our network while the Hugging Face Hub was fast; the initial install took ~30 min. Work on code continued in parallel; the environment is pinned in <code>requirements.txt</code>.</td></tr>
+  <tr><td>No GPU</td><td>Chose a 42 M-parameter backbone (≈ 1 s per training step on CPU), early stopping, and a reduced MLM budget (800 steps).</td></tr>
+  <tr><td>Scraping permission</td><td>Ethiopian Reporter's robots.txt says <code>ai-train=no</code> → not scraped. BBC allows generic crawlers → scraped politely with robots checks and rate limiting.</td></tr>
+  <tr><td><code>\b</code> regex missed <span class="am">የ</span>WHO</td><td>Fidel and Latin letters are both “word characters”. Replaced with explicit Latin look-arounds; added a unit test.</td></tr>
+  <tr><td>Clitic stripping destroyed names</td><td>Greedy stripping: <span class="am">ሱዳን → ሱዳ</span>. Introduced the frequency lexicon constraint.</td></tr>
+  <tr><td><span class="am">የኢትዮጵያ</span> no longer split</td><td>Genitive forms are more frequent than bare stems in news. Changed the threshold from 100% to 10% relative frequency (RE F1 0.75 → 0.97).</td></tr>
+  <tr><td>Trigger <span class="am">ጦርነት</span> not found in <span class="am">ጦርነቱ</span></td><td>Suffix fusion changes the last syllable. Implemented consonant-family matching using the Unicode Fidel layout.</td></tr>
+  <tr><td>Spurious meetings with venues and polities</td><td>Added the <span class="am">በ-</span> venue rule, the modifier rule and polity bookkeeping.</td></tr>
+  <tr><td>spaCy factory error</td><td><code>from __future__ import annotations</code> breaks spaCy's runtime config validation; removed it from that module.</td></tr>
+  <tr><td>JSON could not serialize numpy numbers</td><td>Cast metric values to Python floats before writing reports.</td></tr>
+  <tr><td><code>.gitignore</code> hid <code>reports/runs</code></td><td>The pattern <code>runs/</code> matched any folder named runs; anchored it to the repository root (<code>/runs/</code>).</td></tr>
+</table>
+
+<!-- ============================ 14 ============================ -->
+<h1>14. Reproducibility and version history</h1>
+<h2>14.1 How to reproduce</h2>
+<pre>uv venv --python 3.12 .venv && source .venv/bin/activate
+uv pip install --extra-index-url https://download.pytorch.org/whl/cpu torch==2.5.1+cpu
+uv pip install -r requirements.txt && uv pip install -e .
+pytest -q                          # 16 unit tests (normalization, morphology, relations)
+bash scripts/run_pipeline.sh       # every stage in order, ~2–3 h on an 8-core CPU</pre>
+<p>Individual stages: <code>python -m amner.collect.hf_benchmarks</code> · <code>amner.collect.bbc_amharic</code> · <code>amner.build_corpus</code> · <code>amner.build_lexicon</code> · <code>amner.tokenization</code> · <code>amner.train_mlm</code> · <code>amner.train_ner</code> · <code>amner.evaluate</code> · <code>amner.select_best</code> · <code>amner.significance</code> · <code>amner.evaluate_re</code> · <code>amner.optimize</code> · <code>amner.summarize</code>. All random seeds are fixed. Large data and model files are not stored in git; they are regenerated by the pipeline.</p>
+<h2>14.2 Commit history (the story of the project)</h2>
+<table class="long">
+  <tr><th>#</th><th>Commit message</th></tr>
+  <tr><td>1</td><td>Lay out the project skeleton and pin the toolchain</td></tr>
+  <tr><td>2</td><td>Normalize Amharic text before anything else touches it</td></tr>
+  <tr><td>3</td><td>Collect Amharic news from BBC, the Hugging Face Hub and Telegram</td></tr>
+  <tr><td>4</td><td>Model Amharic clitics so entities are recognised in every inflection</td></tr>
+  <tr><td>5</td><td>Extract political relations with Amharic-aware patterns</td></tr>
+  <tr><td>6</td><td>Build a clean 4M-token news corpus and the clitic lexicon from it</td></tr>
+  <tr><td>7</td><td>Train BPE and WordPiece tokenizers and extend the backbone vocabulary</td></tr>
+  <tr><td>8</td><td>Adapt the encoder to normalized news text, then fine-tune it for NER</td></tr>
+  <tr><td>9</td><td>Evaluate five training recipes and trace their errors to morphology</td></tr>
+  <tr><td>10</td><td>Quantize the served model to INT8 for 2.35x faster CPU inference</td></tr>
+  <tr><td>11</td><td>Serve the pipeline through spaCy, FastAPI and a Gradio interface</td></tr>
+  <tr><td>12</td><td>Script the full reproduction and the Hugging Face Spaces deployment</td></tr>
+  <tr><td>13</td><td>Document every stage, decision and result for the group</td></tr>
+  <tr><td>14</td><td>Show normalization and tokenization inside the web app</td></tr>
+  <tr><td>15</td><td>Log training to TensorBoard and rebuild past runs' curves from their logs</td></tr>
+  <tr><td>16</td><td>Add a one-command demo launcher and an end-to-end rehearsal check</td></tr>
+  <tr><td>17</td><td>Add a step-by-step PDF report with definitions of every concept</td></tr>
+</table>
+
+<!-- ============================ 15 ============================ -->
+<h1>15. Limitations and future work</h1>
+<ul>
+  <li><b>Small labelled dataset</b> (1,750 training sentences). ORG remains weak. More annotated data, or MasakhaNER 2.0 combined with weak labels from gazetteers, would help most.</li>
+  <li><b>String-level clitic analysis.</b> Fused forms (<span class="am">ቤት + -u → ቤቱ</span>, <span class="am">ፕሬዚዳንቱ</span>) and colloquial vowel fusion (<span class="am">በ + አዲስ → ባዲስ</span>) are not analysed. A full morphological analyser (e.g. HornMorpho) could be plugged into <code>MorphAnalyzer</code>.</li>
+  <li><b>Rule-based relations</b>, evaluated on a small development set. Next: annotate a held-out set with native speakers and train a neural relation classifier.</li>
+  <li><b>Augmentation</b> should choose clitics by entity type (e.g. no <span class="am">ወደ-</span> for persons) and could be combined with gold-label cleaning.</li>
+  <li><b>Compute.</b> MLM adaptation saw only ~26k sentences; a longer run on a GPU, larger backbones and several random seeds per configuration would give stronger and more reliable comparisons.</li>
+  <li><b>Telegram data</b> was not collected (credentials); adding it would test robustness on noisier text, where normalization matters most.</li>
+</ul>
+
+<!-- ============================ 16 ============================ -->
+<h1>16. Conclusion</h1>
+<p>We implemented and delivered a complete, reproducible NLP pipeline for Amharic named entity recognition and political relation extraction, covering data collection, normalization, tokenization, model adaptation, evaluation and web deployment. The system reaches an entity-level F1 of <b>0.760</b> on the MasakhaNER Amharic test set, extracts nine types of political relations (F1 0.745 end-to-end), and answers requests through a spaCy pipeline, a FastAPI backend and a Gradio interface in about 10–35 ms on a CPU.</p>
+<p>Beyond the numbers, the project produced several insights about Amharic: homophone normalization changes 7.9% of tokens; a monolingual tokenizer fragments Amharic far less than a multilingual one, yet no frequency-based tokenizer respects clitic boundaries; NER models struggle with new inflections of known names and with genitive <span class="am">የ-</span> forms, and domain adaptation narrows this gap; LoRA is efficient but less accurate on this small dataset; and in relation extraction, correct clitic analysis is the single most important factor. All results are reported with confidence intervals and with an honest account of what did not work.</p>
+
+<!-- ============================ 17 ============================ -->
+<h1>17. Glossary</h1>
+<table class="long">
+  <tr><th style="width:24%">Term</th><th>Definition</th></tr>
+  <tr><td>Abugida</td><td>Writing system in which each character is a consonant–vowel syllable (e.g. Ethiopic Fidel).</td></tr>
+  <tr><td>Ablation</td><td>Experiment that removes/changes one component to measure its contribution.</td></tr>
+  <tr><td>AdamW</td><td>Widely used optimizer with decoupled weight decay.</td></tr>
+  <tr><td>API / REST</td><td>Interface through which programs exchange requests; REST uses HTTP + JSON.</td></tr>
+  <tr><td>Backbone / encoder</td><td>Pre-trained transformer producing contextual vectors for tokens.</td></tr>
+  <tr><td>Batch / step / epoch</td><td>Group of examples / one parameter update / one pass over the training data.</td></tr>
+  <tr><td>BIO (IOB2)</td><td>Labelling scheme: B = beginning, I = inside, O = outside an entity.</td></tr>
+  <tr><td>Bootstrap CI</td><td>Confidence interval obtained by repeatedly resampling the test set.</td></tr>
+  <tr><td>BPE</td><td>Byte-Pair Encoding: subword algorithm that merges the most frequent symbol pairs.</td></tr>
+  <tr><td>Clitic</td><td>Grammatical element written attached to a neighbouring word (<span class="am">የ-, በ-, -ን, -ም</span>).</td></tr>
+  <tr><td>Clitic-boundary recall</td><td>Share of clitic–stem boundaries at which a tokenizer places a subword boundary (our metric).</td></tr>
+  <tr><td>Code-switching</td><td>Mixing languages/scripts within one text.</td></tr>
+  <tr><td>Corpus</td><td>Large collection of texts.</td></tr>
+  <tr><td>DAPT</td><td>Domain-Adaptive Pre-Training: continued MLM training on in-domain text.</td></tr>
+  <tr><td>Data leakage</td><td>Test information entering training, inflating scores.</td></tr>
+  <tr><td>Early stopping / patience</td><td>Stop training when validation score stops improving for <i>patience</i> epochs.</td></tr>
+  <tr><td>Embedding</td><td>Vector representation of a token.</td></tr>
+  <tr><td>Entity / span</td><td>A named thing and the tokens that name it.</td></tr>
+  <tr><td>F1 / precision / recall</td><td>Harmonic mean of precision (correct among predicted) and recall (found among gold).</td></tr>
+  <tr><td>Fertility</td><td>Average number of subword tokens per word.</td></tr>
+  <tr><td>Fidel</td><td>The Ethiopic (Ge'ez) script used for Amharic.</td></tr>
+  <tr><td>Fine-tuning</td><td>Training a pre-trained model further on a labelled task.</td></tr>
+  <tr><td>Fusion</td><td>A suffix merging with the final syllable (<span class="am">ጦርነት → ጦርነቱ</span>).</td></tr>
+  <tr><td>Gold (data / entities)</td><td>Human-annotated correct answers.</td></tr>
+  <tr><td>Homophone</td><td>Different letters with the same pronunciation (<span class="am">ሀ/ሐ/ኀ</span>).</td></tr>
+  <tr><td>Hugging Face Hub / Spaces</td><td>Online repository of models and datasets / hosting of demo apps.</td></tr>
+  <tr><td>Lemma / stem</td><td>Base form of a word without affixes.</td></tr>
+  <tr><td>Lexicon</td><td>List of words, here with corpus frequencies.</td></tr>
+  <tr><td>LoRA</td><td>Low-Rank Adaptation: trains small low-rank matrices added to frozen weights.</td></tr>
+  <tr><td>Loss</td><td>Number measuring prediction error that training minimizes.</td></tr>
+  <tr><td>Masked Language Modelling</td><td>Pre-training by predicting hidden tokens from context.</td></tr>
+  <tr><td>Micro / macro average</td><td>Pooling all entities / averaging per-type scores equally.</td></tr>
+  <tr><td>Morpheme / morphology</td><td>Smallest meaningful unit / study of word structure.</td></tr>
+  <tr><td>NER</td><td>Named Entity Recognition: finding and typing names in text.</td></tr>
+  <tr><td>Normalization</td><td>Mapping spelling variants to one canonical form.</td></tr>
+  <tr><td>Overfitting</td><td>Memorizing training data at the expense of generalization.</td></tr>
+  <tr><td>PEFT</td><td>Parameter-Efficient Fine-Tuning: training only a few parameters.</td></tr>
+  <tr><td>Perplexity</td><td>exp(average loss) of a language model; lower is better.</td></tr>
+  <tr><td>Quantization (INT8)</td><td>Storing/computing with 8-bit integers instead of 32-bit floats.</td></tr>
+  <tr><td>Relation extraction</td><td>Finding (head, relation, tail) triples between entities.</td></tr>
+  <tr><td>Root-and-pattern morphology</td><td>Word formation by combining a consonantal root with a vowel pattern.</td></tr>
+  <tr><td>robots.txt</td><td>File stating which parts of a website automated clients may access.</td></tr>
+  <tr><td>seqeval</td><td>Python library for entity-level sequence labelling evaluation.</td></tr>
+  <tr><td>SOV</td><td>Subject–Object–Verb word order (Amharic); the verb comes last.</td></tr>
+  <tr><td>spaCy pipeline / component</td><td>Ordered processing steps applied to a Doc / one such step.</td></tr>
+  <tr><td>Subword / tokenizer</td><td>Piece of a word / program that splits text into tokens.</td></tr>
+  <tr><td>TensorBoard</td><td>Dashboard that plots training metrics (loss, F1, learning rate) against training steps.</td></tr>
+  <tr><td>Transformer / self-attention</td><td>Neural architecture where every token attends to every other token.</td></tr>
+  <tr><td>Trigger</td><td>Word signalling a relation/event (<span class="am">ተወያዩ</span> “discussed”).</td></tr>
+  <tr><td>Validation / test set</td><td>Data for choosing settings / for the final unbiased evaluation.</td></tr>
+  <tr><td>Vocabulary extension</td><td>Adding tokens to a pre-trained tokenizer and embedding matrix.</td></tr>
+  <tr><td>WordPiece</td><td>Subword algorithm (used by BERT) choosing merges by likelihood gain.</td></tr>
+</table>
+
+<!-- ============================ APPENDICES ============================ -->
+<h1>Appendix A — Hyper-parameters</h1>
+<table class="long">
+  <tr><th>Component</th><th>Setting</th><th>Value</th></tr>
+  <tr><td rowspan="4">Corpus</td><td>min tokens / min Ethiopic ratio</td><td>4 / 0.6</td></tr>
+  <tr><td>train / held-out split</td><td>98% / 2% (≥ 200), seed 13</td></tr>
+  <tr><td>code-switch mode</td><td>keep</td></tr>
+  <tr><td>lexicon min frequency / relative threshold / min stem</td><td>3 / 0.1 / 2 characters</td></tr>
+  <tr><td rowspan="3">Tokenizers</td><td>vocabulary size (BPE, WordPiece)</td><td>16,000, min frequency 2</td></tr>
+  <tr><td>extension criteria</td><td>freq ≥ 20, BPE whole word, ≥ 3 backbone pieces</td></tr>
+  <tr><td>added tokens</td><td>57 (single_word=True)</td></tr>
+  <tr><td rowspan="3">MLM</td><td>mask probability / max length</td><td>0.15 / 128</td></tr>
+  <tr><td>batch / learning rate / warm-up / weight decay</td><td>32 / 5e-5 / 6% / 0.01</td></tr>
+  <tr><td>steps</td><td>800</td></tr>
+  <tr><td rowspan="4">NER</td><td>batch / max length / epochs (max)</td><td>16 / 192 / 10</td></tr>
+  <tr><td>learning rate full / LoRA</td><td>5e-5 / 5e-4</td></tr>
+  <tr><td>warm-up / weight decay / early-stopping patience</td><td>10% / 0.01 / 3</td></tr>
+  <tr><td>seed</td><td>42</td></tr>
+  <tr><td>LoRA</td><td>r / α / dropout / targets</td><td>16 / 32 / 0.1 / query, key, value, dense</td></tr>
+  <tr><td>Augmentation</td><td>p(prefix change) / p(suffix change) / copies</td><td>0.5 / 0.3 / 1</td></tr>
+  <tr><td>Relations</td><td>max gap title→person / modifier window</td><td>2 tokens / 3 tokens</td></tr>
+  <tr><td>Significance</td><td>bootstrap resamples</td><td>2,000 (seed 0)</td></tr>
+  <tr><td>Optimization</td><td>quantization / threads</td><td>dynamic INT8 on nn.Linear / 4</td></tr>
+</table>
+
+<h1>Appendix B — File-by-file description</h1>
+<table class="long">
+  <tr><th style="width:32%">File</th><th>Purpose</th></tr>
+  <tr><td>src/amner/collect/bbc_amharic.py</td><td>Robots-aware BeautifulSoup scraper for BBC News Amharic</td></tr>
+  <tr><td>src/amner/collect/hf_benchmarks.py</td><td>Downloads MasakhaNER (parquet) and unlabelled Hub news</td></tr>
+  <tr><td>src/amner/collect/telegram_channels.py</td><td>Optional Telethon scraper for public Telegram channels</td></tr>
+  <tr><td>src/amner/normalize.py</td><td>Homophone/labial/digit normalization, cleaning, punctuation, code-switching, sentence split, filter</td></tr>
+  <tr><td>src/amner/build_corpus.py</td><td>Applies normalization to all data; de-duplication; leakage guard; statistics</td></tr>
+  <tr><td>src/amner/bio.py</td><td>Converts BIO label sequences to entity spans</td></tr>
+  <tr><td>src/amner/morphology.py</td><td>Clitic analyser (greedy and lexicon), lemmas, affix buckets, augmentation</td></tr>
+  <tr><td>src/amner/build_lexicon.py</td><td>Builds the 87,975-word frequency lexicon</td></tr>
+  <tr><td>src/amner/tokenization.py</td><td>Trains BPE/WordPiece, evaluates tokenizers, extends the backbone vocabulary</td></tr>
+  <tr><td>src/amner/data.py</td><td>Loads NER data, augmentation, subword label alignment</td></tr>
+  <tr><td>src/amner/train_mlm.py</td><td>Domain-adaptive MLM with perplexity before/after</td></tr>
+  <tr><td>src/amner/train_ner.py</td><td>NER fine-tuning (full or LoRA), early stopping, run report</td></tr>
+  <tr><td>src/amner/inference.py</td><td>NERTagger: text → normalized tokens → entities with lemmas and scores</td></tr>
+  <tr><td>src/amner/evaluate.py</td><td>seqeval metrics, normalization ablation, morphological buckets, error analysis</td></tr>
+  <tr><td>src/amner/significance.py</td><td>Paired bootstrap confidence intervals</td></tr>
+  <tr><td>src/amner/select_best.py / summarize.py</td><td>Model selection by validation F1 / RESULTS.md and figure</td></tr>
+  <tr><td>src/amner/relations.py / evaluate_re.py</td><td>Relation extraction rules / evaluation on the gold set</td></tr>
+  <tr><td>src/amner/optimize.py</td><td>INT8 quantization benchmark</td></tr>
+  <tr><td>src/amner/explain.py</td><td>Normalization diff and tokenizer comparison for the explainability tabs</td></tr>
+  <tr><td>src/amner/tb_export.py</td><td>TensorBoard logging switch and conversion of logged run histories to event files</td></tr>
+  <tr><td>runs/</td><td>TensorBoard event files of all training runs</td></tr>
+  <tr><td>scripts/launch_demo.sh · rehearse_demo.py</td><td>One-command demo launcher · end-to-end rehearsal checks</td></tr>
+  <tr><td>src/amner/spacy_pipeline.py / service.py</td><td>spaCy custom pipeline / shared analysis entry point</td></tr>
+  <tr><td>api/main.py · app/gradio_app.py</td><td>FastAPI backend · Gradio interface</td></tr>
+  <tr><td>scripts/run_pipeline.sh · deploy_space.py</td><td>Full reproduction · Hugging Face deployment</td></tr>
+  <tr><td>eval/re_gold.jsonl</td><td>25-sentence relation gold set</td></tr>
+  <tr><td>tests/</td><td>16 unit tests</td></tr>
+  <tr><td>reports/</td><td>All metrics (JSON), RESULTS.md, error analyses, figure</td></tr>
+  <tr><td>PROCESS.md · README.md</td><td>Detailed process log · project overview</td></tr>
+</table>
+
+<h1>Appendix C — Relation gold-set examples</h1>
+<table>
+  <tr><th>#</th><th>Sentence</th><th>Gold relations</th><th>What it tests</th></tr>
+  <tr><td>1</td><td class="am">የኢትዮጵያ ጠቅላይ ሚኒስትር ዐቢይ አሕመድ ከኬንያው ፕሬዚዳንት ዊልያም ሩቶ ጋር በናይሮቢ ተወያዩ።</td><td>2× LEADER_OF, 2× HOLDS_TITLE, MET_WITH(Abiy, Ruto)</td><td>polity vs participant, venue <span class="am">በ-</span></td></tr>
+  <tr><td>3</td><td class="am">ኢትዮጵያ እና ሱዳን በድንበር ጉዳይ ላይ ስምምነት ተፈራረሙ።</td><td>AGREEMENT_WITH(Ethiopia, Sudan)</td><td>coordination; <span class="am">ሱዳን</span> must not become <span class="am">ሱዳ</span></td></tr>
+  <tr><td>12</td><td class="am">ጦርነቱ በፌደራል መንግሥቱ እና በሕወሓት መካከል ለሁለት ዓመታት ቀጥሏል።</td><td>CONFLICT_WITH(federal government, TPLF)</td><td>fused trigger <span class="am">ጦርነቱ</span>; <span class="am">መካከል</span> frame</td></tr>
+  <tr><td>18</td><td class="am">ኬንያ በናይሮቢ ለሚካሄደው ጉባኤ የኢጋድ አባል አገራትን ጋብዛለች።</td><td>(none)</td><td>negative example</td></tr>
+  <tr><td>19</td><td class="am">የአሜሪካው ፕሬዚዳንት ዶናልድ ትራምፕ ከሩሲያው አቻቸው ቭላድሚር ፑቲን ጋር በአላስካ ተገናኙ።</td><td>LEADER_OF, HOLDS_TITLE, MET_WITH(Trump, Putin)</td><td>“counterpart” modifier rule</td></tr>
+  <tr><td>20</td><td class="am">… ከፌደራል መንግሥቱ ጋር የሰላም ስምምነቱን አፈጻጸም በተመለከተ ተወያዩ።</td><td>MET_WITH (not AGREEMENT_WITH)</td><td>agreement noun without signing verb</td></tr>
+  <tr><td>25</td><td class="am">ጠቅላይ ሚኒስትሩ ትናንት ከተቃዋሚ ፓርቲዎች ጋር ተወያዩ።</td><td>(none)</td><td>title without a named person</td></tr>
+</table>
+<p class="small">The full set (25 sentences, 55 relations) is in <code>eval/re_gold.jsonl</code>; per-sentence errors are listed in <code>reports/eval/relation_errors.md</code>.</p>
+
+</body>
+</html>

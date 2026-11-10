@@ -478,7 +478,7 @@ annotations (`ConfigError: field "nlp" not yet prepared`).
 ```bash
 uvicorn api.main:app --port 8000      # docs at http://127.0.0.1:8000/docs
 ```
-Endpoints: `GET /health`, `POST /analyze {"text": ...}`, `POST /analyze/batch`.
+Endpoints: `GET /health`, `POST /analyze {"text": ...}`, `POST /analyze/batch`, `POST /normalize`, `POST /tokenize`.
 The response contains the normalized text, entities (surface, type, lemma,
 confidence, offsets), relations, a per-token morphology table and the latency.
 The model loads once at start-up, with INT8 quantization on by default.
@@ -494,10 +494,29 @@ the screenshot `docs/ui_demo.png` was taken from the running system.
 
 ![UI](docs/ui_demo.png)
 
-### 8.4 Hugging Face Spaces
+### 8.4 Explainability tabs, TensorBoard and rehearsal
+* **Normalization tab** (`POST /normalize`, `amner.explain.normalization_diff`): the raw input
+  with every character the normalizer re-spells highlighted with its rule (`ሕ→ህ`, `ዐ→አ`, …),
+  removed noise (URLs, mentions, emojis), the cleaned text, a change table and a summary.
+* **Tokenizer tab** (`POST /tokenize`, `amner.explain.tokenizer_comparison`): the subword
+  splits of the backbone, the extended backbone, our BPE and WordPiece and XLM-R for any
+  word or phrase, next to the clitic segmentation (prefix + stem + suffix). Example:
+  every tokenizer keeps `ለኢትዮጵያ` whole, while the analyser gives `ለ + ኢትዮጵያ + ንም`;
+  XLM-R shatters `ከኬንያው` into 4 pieces.
+* **TensorBoard**: `train_ner`/`train_mlm` now log with `report_to=["tensorboard"]` to
+  `runs/<run>` when the package is installed. The five NER runs and the MLM run were
+  trained before that, so `python -m amner.tb_export` rebuilt their curves from the
+  Trainer's logged metric dictionaries (no retraining). The event files (72 KB) are
+  committed; `tensorboard --logdir runs` shows loss, learning rate, gradient norm and
+  validation P/R/F1 per epoch for all runs.
+* **Rehearsal**: `bash scripts/launch_demo.sh --tb` starts API, UI and TensorBoard;
+  `python scripts/rehearse_demo.py` exercises all 4 API endpoints and all UI tabs.
+  Result: **8/8 checks passed** (analyze ≈ 0.4 s, normalize ≈ 4 ms, tokenize ≈ 1.1 s on first call).
+
+### 8.5 Hugging Face Spaces
 `python scripts/deploy_space.py` (after `huggingface-cli login` with a *write* token)
 uploads the model to a model repo and deploys the same Gradio app as a Space that
-downloads the model at start-up.
+downloads the model at start-up (the custom tokenizer files are shipped with it for the Tokenizer tab).
 
 Status: the Space was **not** deployed in this submission (the group chose to
 deploy later). The script and model are ready; run it after logging in.
